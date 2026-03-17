@@ -66,8 +66,12 @@ taskForm.addEventListener('submit', async (e) => {
       body: JSON.stringify(newTask)
     });
 
+    const data = await res.json().catch(() => null);
+
     if (!res.ok) {
-      throw new Error('Error al guardar');
+      console.error('Error backend:', data);
+      alert(data?.error || data?.detalle || 'No se pudo guardar la solicitud');
+      return;
     }
 
     taskForm.reset();
