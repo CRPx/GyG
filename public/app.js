@@ -78,9 +78,9 @@ taskForm.addEventListener('submit', async (e) => {
     document.getElementById('date').valueAsDate = new Date();
     await loadTasks();
   } catch (error) {
-    console.error('Error al guardar solicitud:', error);
-    alert('PRUEBA NUEVA 123');
-  }
+  console.error('Error al guardar solicitud:', error);
+  alert(`${error.name}: ${error.message}`);
+}
 });
 
 
