@@ -119,6 +119,25 @@ app.delete('/api/solicitudes/:id', (req, res) => {
   );
 });
 
+function formatFechaExcel(value) {
+  if (!value) return '';
+
+  if (value instanceof Date && !isNaN(value)) {
+    const year = value.getUTCFullYear();
+    const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(value.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  if (typeof value === 'string') {
+    if (value.includes('T')) return value.split('T')[0];
+    return value.slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
+}
+
+
 app.get('/api/exportar-excel', (req, res) => {
   const sql = `
     SELECT id, fecha, empresa, pendientes, observaciones, estatus
@@ -178,9 +197,7 @@ app.get('/api/exportar-excel', (req, res) => {
       });
 
       results.forEach((item) => {
-        const fecha = String(item.fecha).includes('T')
-          ? String(item.fecha).split('T')[0]
-          : String(item.fecha).slice(0, 10);
+        const fecha = formatFechaExcel(item.fecha);
 
         const row = worksheet.addRow({
           fecha,

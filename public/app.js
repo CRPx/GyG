@@ -86,13 +86,16 @@ taskForm.addEventListener('submit', async (e) => {
 
 
 function renderTasks() {
+  const filterFechaValue = filterFecha.value;
   const filterEmpresaValue = filterEmpresa.value;
   const filterEstatusValue = filterEstatus.value;
 
   let filtered = tasks.filter(task => {
+    const fechaMatch = !filterFechaValue || task.date === filterFechaValue;
     const empresaMatch = !filterEmpresaValue || task.empresa === filterEmpresaValue;
     const estatusMatch = !filterEstatusValue || task.estatus === filterEstatusValue;
-    return empresaMatch && estatusMatch;
+
+    return fechaMatch && empresaMatch && estatusMatch;
   });
 
   filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -102,7 +105,7 @@ function renderTasks() {
   if (filtered.length === 0) {
     tasksGrid.innerHTML = `
       <div class="empty-state no-tasks">
-        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-icon">📋</div>
         <div class="empty-state-text">No hay pendientes con los filtros seleccionados</div>
       </div>
     `;
@@ -113,9 +116,10 @@ function renderTasks() {
     const statusClass = `status-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
     const headerClass = `header-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
     const formattedDate = getFormattedDate(task.date);
+
     const statusEmoji = {
       'Pendiente': '🔴',
-      'En proceso': '🟠',
+      'En proceso': '🟡',
       'Completado': '🟢'
     };
 
@@ -127,28 +131,23 @@ function renderTasks() {
         <div><strong>${task.empresa}</strong></div>
         <div class="task-date">${formattedDate}</div>
       </div>
-
       <div class="task-body">
         <div class="task-field">
           <div class="task-field-label">Detalles del Trabajo</div>
           <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
         </div>
-
         ${task.observaciones ? `
-          <div class="task-field">
-            <div class="task-field-label">Observaciones</div>
-            <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
-          </div>
-        ` : ''}
-
+        <div class="task-field">
+          <div class="task-field-label">Observaciones</div>
+          <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
+        </div>` : ''}
         <div class="task-field">
           <div class="task-field-label">Estatus</div>
           <span class="status-badge ${statusClass}">
-            ${statusEmoji[task.estatus] || ''} ${task.estatus}
+            ${statusEmoji[task.estatus]} ${task.estatus}
           </span>
         </div>
       </div>
-
       <div class="task-actions">
         <button class="btn-small btn-edit" onclick="openEditModal(${task.id})">Editar</button>
         <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">Eliminar</button>
@@ -158,6 +157,7 @@ function renderTasks() {
     tasksGrid.appendChild(card);
   });
 }
+
 
 function updateStats() {
   const total = tasks.length;
@@ -271,6 +271,14 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
+function clearFilters() {
+  filterFecha.value = '';
+  filterEmpresa.value = '';
+  filterEstatus.value = '';
+  renderTasks();
+}
+
+filterFecha.addEventListener('change', renderTasks);
 filterEmpresa.addEventListener('change', renderTasks);
 filterEstatus.addEventListener('change', renderTasks);
 
@@ -287,3 +295,4 @@ window.openEditModal = openEditModal;
 window.closeModal = closeModal;
 window.deleteTask = deleteTask;
 window.exportData = exportData;
+window.clearFilters = clearFilters;
