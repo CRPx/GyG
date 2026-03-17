@@ -31,12 +31,11 @@ app.get('/api/solicitudes', (req, res) => {
 });
 
 app.post('/api/solicitudes', (req, res) => {
+  console.log('Body recibido:', req.body);
   const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
 
   if (!fecha || !empresa || !pendientes || !estatus) {
-    return res.status(400).json({
-      error: 'Faltan campos obligatorios'
-    });
+    return res.status(400).json({ error: 'Faltan campos obligatorios' });
   }
 
   const sql = `
@@ -56,10 +55,7 @@ app.post('/api/solicitudes', (req, res) => {
         });
       }
 
-      res.json({
-        mensaje: 'Solicitud guardada',
-        id: result.insertId
-      });
+      res.json({ mensaje: 'Solicitud guardada', id: result.insertId });
     }
   );
 });
