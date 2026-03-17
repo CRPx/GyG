@@ -83,6 +83,7 @@ taskForm.addEventListener('submit', async (e) => {
   }
 });
 
+
 function renderTasks() {
   const filterEmpresaValue = filterEmpresa.value;
   const filterEstatusValue = filterEstatus.value;
