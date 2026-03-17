@@ -79,7 +79,7 @@ taskForm.addEventListener('submit', async (e) => {
     await loadTasks();
   } catch (error) {
     console.error('Error al guardar solicitud:', error);
-    alert('No se pudo guardar la solicitud');
+    alert('PRUEBA NUEVA 123');
   }
 });
 
