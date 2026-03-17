@@ -1,7 +1,7 @@
-const ExcelJS = require('exceljs');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const ExcelJS = require('exceljs');
 const db = require('./db');
 
 const app = express();
@@ -13,31 +13,20 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('/api/solicitudes', (req, res) => {
   const sql = `
     SELECT id, fecha, empresa, pendientes, observaciones, estatus
-    FROM solicitudes
+    FROM solicitudes1
     ORDER BY fecha DESC, id DESC
   `;
 
   db.query(sql, (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Error al obtener solicitudes', detalle: err });
+      console.error('Error al obtener solicitudes:', err);
+      return res.status(500).json({
+        error: 'Error al obtener solicitudes',
+        detalle: err.message
+      });
     }
+
     res.json(results);
-  });
-});
-
-app.get('/api/empresas', (req, res) => {
-  const sql = `
-    SELECT DISTINCT empresa
-    FROM solicitudes
-    WHERE empresa IS NOT NULL AND empresa <> ''
-    ORDER BY empresa ASC
-  `;
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener empresas', detalle: err });
-    }
-    res.json(results.map(r => r.empresa));
   });
 });
 
@@ -45,11 +34,13 @@ app.post('/api/solicitudes', (req, res) => {
   const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
 
   if (!fecha || !empresa || !pendientes || !estatus) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    return res.status(400).json({
+      error: 'Faltan campos obligatorios'
+    });
   }
 
   const sql = `
-    INSERT INTO solicitudes (fecha, empresa, pendientes, observaciones, estatus)
+    INSERT INTO solicitudes1 (fecha, empresa, pendientes, observaciones, estatus)
     VALUES (?, ?, ?, ?, ?)
   `;
 
@@ -58,8 +49,13 @@ app.post('/api/solicitudes', (req, res) => {
     [fecha, empresa, pendientes, observaciones || '', estatus],
     (err, result) => {
       if (err) {
-        return res.status(500).json({ error: 'Error al guardar solicitud', detalle: err });
+        console.error('Error al guardar solicitud:', err);
+        return res.status(500).json({
+          error: 'Error al guardar solicitud',
+          detalle: err.message
+        });
       }
+
       res.json({
         mensaje: 'Solicitud guardada',
         id: result.insertId
@@ -73,11 +69,13 @@ app.put('/api/solicitudes/:id', (req, res) => {
   const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
 
   if (!fecha || !empresa || !pendientes || !estatus) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    return res.status(400).json({
+      error: 'Faltan campos obligatorios'
+    });
   }
 
   const sql = `
-    UPDATE solicitudes
+    UPDATE solicitudes1
     SET fecha = ?, empresa = ?, pendientes = ?, observaciones = ?, estatus = ?
     WHERE id = ?
   `;
@@ -85,11 +83,19 @@ app.put('/api/solicitudes/:id', (req, res) => {
   db.query(
     sql,
     [fecha, empresa, pendientes, observaciones || '', estatus, id],
-    (err) => {
+    (err, result) => {
       if (err) {
-        return res.status(500).json({ error: 'Error al actualizar solicitud', detalle: err });
+        console.error('Error al actualizar solicitud:', err);
+        return res.status(500).json({
+          error: 'Error al actualizar solicitud',
+          detalle: err.message
+        });
       }
-      res.json({ mensaje: 'Solicitud actualizada' });
+
+      res.json({
+        mensaje: 'Solicitud actualizada',
+        filasAfectadas: result.affectedRows
+      });
     }
   );
 });
@@ -97,28 +103,40 @@ app.put('/api/solicitudes/:id', (req, res) => {
 app.delete('/api/solicitudes/:id', (req, res) => {
   const { id } = req.params;
 
-  db.query('DELETE FROM solicitudes WHERE id = ?', [id], (err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al eliminar solicitud', detalle: err });
-    }
-    res.json({ mensaje: 'Solicitud eliminada' });
-  });
-});
+  db.query(
+    'DELETE FROM solicitudes1 WHERE id = ?',
+    [id],
+    (err, result) => {
+      if (err) {
+        console.error('Error al eliminar solicitud:', err);
+        return res.status(500).json({
+          error: 'Error al eliminar solicitud',
+          detalle: err.message
+        });
+      }
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+      res.json({
+        mensaje: 'Solicitud eliminada',
+        filasAfectadas: result.affectedRows
+      });
+    }
+  );
 });
 
 app.get('/api/exportar-excel', (req, res) => {
   const sql = `
     SELECT id, fecha, empresa, pendientes, observaciones, estatus
-    FROM solicitudes
+    FROM solicitudes1
     ORDER BY fecha DESC, id DESC
   `;
 
   db.query(sql, async (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Error al exportar', detalle: err });
+      console.error('Error al exportar:', err);
+      return res.status(500).json({
+        error: 'Error al exportar',
+        detalle: err.message
+      });
     }
 
     try {
@@ -244,11 +262,21 @@ app.get('/api/exportar-excel', (req, res) => {
       await workbook.xlsx.write(res);
       res.end();
     } catch (error) {
-      res.status(500).json({ error: 'Error al generar Excel', detalle: error.message });
+      console.error('Error al generar Excel:', error);
+      res.status(500).json({
+        error: 'Error al generar Excel',
+        detalle: error.message
+      });
     }
   });
 });
 
-app.listen(3000, () => {
-  console.log('Servidor corriendo en http://localhost:3000');
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
