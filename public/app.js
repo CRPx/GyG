@@ -70,7 +70,8 @@ taskForm.addEventListener('submit', async (e) => {
 
     if (!res.ok) {
       console.error('Error backend:', data);
-      alert(data?.error || data?.detalle || 'No se pudo guardar la solicitud');
+      alert(data?.detalle || data?.error || 'No se pudo guardar la solicitud');
+
       return;
     }
 
