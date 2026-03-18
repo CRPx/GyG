@@ -410,9 +410,10 @@ button {
 .task-header {
   padding: 18px 20px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   color: white;
   font-weight: 700;
 }
@@ -421,14 +422,18 @@ button {
   font-size: 21px;
   font-weight: 800;
   line-height: 1.2;
+  flex: 1;
+  text-align: left;
 }
 
 .task-date {
   font-size: 18px;
   font-weight: 800;
   opacity: 1;
-  white-space: normal;
+  white-space: nowrap;
   line-height: 1.2;
+  text-align: right;
+  margin-left: auto;
 }
 
 .task-body {
@@ -705,4 +710,16 @@ button {
     margin: 10% auto;
     max-width: 100%;
   }
+
+  .task-header {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.task-date {
+  text-align: left;
+  margin-left: 0;
+  white-space: normal;
+}
+
 }
