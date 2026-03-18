@@ -19,12 +19,12 @@
   --danger-text: #9F2D22;
   --success-bg: #E6F5EA;
 
-  --bg-left-top: #B63B2F;
-  --bg-left-bottom: #7F221C;
-  --bg-right-top: #4D6FD1;
-  --bg-right-bottom: #243D7A;
-  --header-top: #F5E892;
-  --header-bottom: #DCC85A;
+  --bg-left-top: #EAF1FF;
+  --bg-left-bottom: #C9D9FF;
+  --bg-right-top: #FFFDF0;
+  --bg-right-bottom: #F4EDBF;
+  --header-top: #FBE5E2;
+  --header-bottom: #F3B8B1;
 
   --surface: rgba(255, 255, 255, 0.96);
   --surface-alt: #F8FAFC;
@@ -77,7 +77,7 @@ body {
 .page-header {
   width: 100%;
   background: linear-gradient(180deg, var(--header-top) 0%, var(--header-bottom) 100%);
-  border-bottom: 1px solid rgba(120, 104, 24, 0.18);
+  border-bottom: 1px solid rgba(180, 90, 80, 0.18);
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
   padding: 22px 24px;
 }
@@ -107,7 +107,7 @@ body {
 
 .page-header h1 {
   margin: 0;
-  color: #2F2A12;
+  color: #5B241F;
   font-size: 40px;
   font-weight: 800;
   letter-spacing: 0.3px;
@@ -115,7 +115,7 @@ body {
 
 .header-subtitle {
   margin: 0;
-  color: #5E5522;
+  color: #7A4741;
   font-size: 15px;
 }
 
@@ -136,11 +136,11 @@ body {
 }
 
 .left-panel {
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.00) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 100%);
 }
 
 .right-panel {
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.00) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 100%);
 }
 
 .left-panel-inner,
@@ -417,17 +417,17 @@ button {
   font-weight: 700;
 }
 
+.task-company {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .task-date {
   font-size: 18px;
   font-weight: 800;
   opacity: 1;
   white-space: normal;
-  line-height: 1.2;
-}
-
-.task-company {
-  font-size: 21px;
-  font-weight: 800;
   line-height: 1.2;
 }
 
@@ -634,11 +634,11 @@ button {
   }
 
   .left-panel {
-    background: linear-gradient(180deg, #B63B2F 0%, #8D2922 100%);
+    background: linear-gradient(180deg, #EAF1FF 0%, #C9D9FF 100%);
   }
 
   .right-panel {
-    background: linear-gradient(180deg, #4D6FD1 0%, #243D7A 100%);
+    background: linear-gradient(180deg, #FFFDF0 0%, #F4EDBF 100%);
   }
 
   .left-panel-inner,
