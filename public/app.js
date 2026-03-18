@@ -135,9 +135,9 @@ function renderTasks() {
 
     card.innerHTML = `
       <div class="task-header ${headerClass}">
-        <div><strong>${escapeHtml(task.empresa)}</strong></div>
-        <div class="task-date">${formattedDate}</div>
-      </div>
+  <div class="task-date">${formattedDate}</div>
+  <div class="task-company">${escapeHtml(task.empresa)}</div>
+</div>
 
       <div class="task-body">
         <div class="task-preview">
