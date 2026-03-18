@@ -203,7 +203,7 @@ function updateFilterOptions() {
   const empresas = [...new Set(tasks.map(t => t.empresa))].sort();
   const currentValue = filterEmpresa.value;
 
-  filterEmpresa.innerHTML = `<option value="">Todas las Empresas</option>`;
+  filterEmpresa.innerHTML = `<option value="">Empresas</option>`;
 
   empresas.forEach(empresa => {
     const option = document.createElement('option');
