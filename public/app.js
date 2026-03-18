@@ -134,52 +134,52 @@ function renderTasks() {
     card.className = `task-card ${statusClass} ${isExpanded ? 'expanded' : ''}`;
 
     card.innerHTML = `
-      <div class="task-header ${headerClass}">
-        <div class="task-company">${escapeHtml(task.empresa)}</div>
-        <div class="task-date">${formattedDate}</div>
+  <div class="task-header ${headerClass}">
+    <div class="task-company">${escapeHtml(task.empresa)}</div>
+    <div class="task-date">${formattedDate}</div>
+  </div>
+
+  <div class="task-body">
+    <div class="task-preview">
+      <div class="task-field">
+        <div class="task-field-label">Detalles del Trabajo</div>
+        <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+      </div>
+    </div>
+
+    <div class="task-extra">
+      ${task.observaciones ? `
+        <div class="task-field">
+          <div class="task-field-label">Observaciones</div>
+          <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
+        </div>
+      ` : ''}
+
+      <div class="task-field">
+        <div class="task-field-label">Estatus</div>
+        <span class="status-badge ${statusClass}">
+          ${statusEmoji[task.estatus]} ${task.estatus}
+        </span>
       </div>
 
-      <div class="task-body">
-        <div class="task-preview">
-          <div class="task-field">
-            <div class="task-field-label">Detalles del Trabajo</div>
-            <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
-          </div>
-        </div>
+      <div class="task-actions" onclick="event.stopPropagation()">
+        <button
+          class="btn-small btn-edit"
+          onclick="event.stopPropagation(); openEditModal(${task.id})"
+        >
+          Editar
+        </button>
 
-        <div class="task-extra">
-          ${task.observaciones ? `
-            <div class="task-field">
-              <div class="task-field-label">Observaciones</div>
-              <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
-            </div>
-          ` : ''}
-
-          <div class="task-field">
-            <div class="task-field-label">Estatus</div>
-            <span class="status-badge ${statusClass}">
-              ${statusEmoji[task.estatus]} ${task.estatus}
-            </span>
-          </div>
-
-          <div class="task-actions" onclick="event.stopPropagation()">
-            <button
-              class="btn-small btn-edit"
-              onclick="event.stopPropagation(); openEditModal(${task.id})"
-            >
-              Editar
-            </button>
-
-            <button
-              class="btn-small btn-delete"
-              onclick="event.stopPropagation(); deleteTask(${task.id})"
-            >
-              Eliminar
-            </button>
-          </div>
-        </div>
+        <button
+          class="btn-small btn-delete"
+          onclick="event.stopPropagation(); deleteTask(${task.id})"
+        >
+          Eliminar
+        </button>
       </div>
-    `;
+    </div>
+  </div>
+`;
 
     card.addEventListener('click', () => toggleTaskDetails(task.id));
     tasksGrid.appendChild(card);
