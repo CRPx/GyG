@@ -614,3 +614,88 @@ button {
     max-width: 100%;
   }
 }
+
+/* Filtros más compactos */
+.filters-container {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  padding: 12px 14px;
+  gap: 10px;
+  border-radius: 14px;
+}
+
+.filter-label {
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.filter-select {
+  min-width: 140px;
+  max-width: 180px;
+}
+
+#filterFecha.filter-select {
+  min-width: 150px;
+  max-width: 150px;
+}
+
+.filters-container .btn-secondary {
+  padding: 10px 14px;
+}
+
+/* Tarjetas desplegables */
+.task-card {
+  cursor: pointer;
+}
+
+.task-body {
+  padding: 18px;
+}
+
+.task-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-extra {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin-top: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
+}
+
+.task-card.expanded {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.task-card.expanded .task-extra {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 14px;
+}
+
+.task-actions {
+  padding: 0;
+  margin-top: 14px;
+  border-top: none;
+  background: transparent;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filters-container {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .filter-select,
+  #filterFecha.filter-select,
+  .filters-container button {
+    width: 100%;
+    max-width: 100%;
+  }
+}

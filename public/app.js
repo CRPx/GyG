@@ -1,5 +1,6 @@
 let tasks = [];
 let editingId = null;
+let expandedTaskId = null;
 
 const taskForm = document.getElementById('taskForm');
 const tasksGrid = document.getElementById('tasksGrid');
@@ -29,6 +30,11 @@ async function loadTasks() {
     console.error('Error al cargar solicitudes:', error);
     alert('No se pudieron cargar las solicitudes');
   }
+}
+
+function toggleTaskDetails(id) {
+  expandedTaskId = expandedTaskId === id ? null : id;
+  renderTasks();
 }
 
 function formatDateForInput(value) {
@@ -86,7 +92,7 @@ taskForm.addEventListener('submit', async (e) => {
 
 
 function renderTasks() {
-  const filterFechaValue = filterFecha.value;
+  const filterFechaValue = document.getElementById('filterFecha')?.value || '';
   const filterEmpresaValue = filterEmpresa.value;
   const filterEstatusValue = filterEstatus.value;
 
@@ -113,6 +119,7 @@ function renderTasks() {
   }
 
   filtered.forEach(task => {
+    const isExpanded = expandedTaskId === task.id;
     const statusClass = `status-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
     const headerClass = `header-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
     const formattedDate = getFormattedDate(task.date);
@@ -124,36 +131,57 @@ function renderTasks() {
     };
 
     const card = document.createElement('div');
-    card.className = `task-card ${statusClass}`;
+    card.className = `task-card ${statusClass} ${isExpanded ? 'expanded' : ''}`;
 
     card.innerHTML = `
       <div class="task-header ${headerClass}">
-        <div><strong>${task.empresa}</strong></div>
+        <div><strong>${escapeHtml(task.empresa)}</strong></div>
         <div class="task-date">${formattedDate}</div>
       </div>
+
       <div class="task-body">
-        <div class="task-field">
-          <div class="task-field-label">Detalles del Trabajo</div>
-          <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+        <div class="task-preview">
+          <div class="task-field">
+            <div class="task-field-label">Detalles del Trabajo</div>
+            <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+          </div>
         </div>
-        ${task.observaciones ? `
-        <div class="task-field">
-          <div class="task-field-label">Observaciones</div>
-          <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
-        </div>` : ''}
-        <div class="task-field">
-          <div class="task-field-label">Estatus</div>
-          <span class="status-badge ${statusClass}">
-            ${statusEmoji[task.estatus]} ${task.estatus}
-          </span>
+
+        <div class="task-extra">
+          ${task.observaciones ? `
+            <div class="task-field">
+              <div class="task-field-label">Observaciones</div>
+              <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
+            </div>
+          ` : ''}
+
+          <div class="task-field">
+            <div class="task-field-label">Estatus</div>
+            <span class="status-badge ${statusClass}">
+              ${statusEmoji[task.estatus]} ${task.estatus}
+            </span>
+          </div>
+
+          <div class="task-actions" onclick="event.stopPropagation()">
+            <button
+              class="btn-small btn-edit"
+              onclick="event.stopPropagation(); openEditModal(${task.id})"
+            >
+              Editar
+            </button>
+
+            <button
+              class="btn-small btn-delete"
+              onclick="event.stopPropagation(); deleteTask(${task.id})"
+            >
+              Eliminar
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="task-actions">
-        <button class="btn-small btn-edit" onclick="openEditModal(${task.id})">Editar</button>
-        <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">Eliminar</button>
       </div>
     `;
 
+    card.addEventListener('click', () => toggleTaskDetails(task.id));
     tasksGrid.appendChild(card);
   });
 }
