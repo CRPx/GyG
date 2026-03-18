@@ -644,3 +644,52 @@ button {
     padding-right: 14px;
   }
 }
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 0.95fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.left-panel,
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.right-panel .form-container {
+  position: sticky;
+  top: 24px;
+}
+
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+.left-panel .stats-container {
+  margin-bottom: 0;
+}
+
+.left-panel .filters-container {
+  margin-bottom: 0;
+}
+
+.left-panel .tasks-grid {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .right-panel .form-container {
+    position: static;
+  }
+}
