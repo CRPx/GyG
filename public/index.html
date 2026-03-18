@@ -7,15 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <header class="page-header">
+  <header class="page-header">
+    <div class="header-inner">
+      <img src="logo.jpg" alt="Logo GyG" class="header-logo">
       <h1>Gestor de pendientes GyG</h1>
       <p class="header-subtitle">Organización y monitoreo de pendientes de los clientes</p>
-    </header>
+    </div>
+  </header>
 
-    <main class="main-layout">
-      <!-- Columna izquierda -->
-      <section class="left-panel">
+  <main class="page-layout">
+    <section class="left-panel">
+      <div class="left-panel-inner">
         <div class="stats-container">
           <div class="stat-card">
             <div class="stat-number stat-total" id="totalCount">0</div>
@@ -59,10 +61,11 @@
         </div>
 
         <div class="tasks-grid" id="tasksGrid"></div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Columna derecha -->
-      <aside class="right-panel">
+    <aside class="right-panel">
+      <div class="right-panel-inner">
         <div class="form-container">
           <div class="form-title">Agregar Nuevo Pendiente</div>
 
@@ -104,56 +107,57 @@
             </div>
           </form>
         </div>
-      </aside>
-    </main>
-
-    <div id="editModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <div class="modal-header">Editar Pendiente</div>
-
-        <form id="editForm">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="editDate">Fecha</label>
-              <input type="date" id="editDate" required>
-            </div>
-
-            <div class="form-group">
-              <label for="editEmpresa">Empresa</label>
-              <input type="text" id="editEmpresa" required>
-            </div>
-
-            <div class="form-group form-group-full">
-              <label for="editPendientes">Detalles</label>
-              <textarea id="editPendientes" required></textarea>
-            </div>
-
-            <div class="form-group form-group-full">
-              <label for="editObservaciones">Observaciones</label>
-              <textarea id="editObservaciones"></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="editEstatus">Estatus</label>
-              <select id="editEstatus" required>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Completado">Completado</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-buttons">
-            <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button type="submit" class="btn-primary">Guardar Cambios</button>
-          </div>
-        </form>
       </div>
-    </div>
+    </aside>
+  </main>
 
-    <script src="app.js"></script>
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div class="modal-header">Editar Pendiente</div>
+
+      <form id="editForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="editDate">Fecha</label>
+            <input type="date" id="editDate" required>
+          </div>
+
+          <div class="form-group">
+            <label for="editEmpresa">Empresa</label>
+            <input type="text" id="editEmpresa" required>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="editPendientes">Detalles</label>
+            <textarea id="editPendientes" required></textarea>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="editObservaciones">Observaciones</label>
+            <textarea id="editObservaciones"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="editEstatus">Estatus</label>
+            <select id="editEstatus" required>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completado">Completado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-buttons">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
   </div>
+
+  <script src="app.js"></script>
 </body>
+
 
 </html>
