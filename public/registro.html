@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro | PENDIENTES GyG</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-panel">
+      <img src="logo.png" alt="Logo GyG" class="login-logo">
+      <h1 class="login-title">Registro</h1>
+
+      <form class="login-form" id="registroForm">
+        <div class="login-group">
+          <label for="nuevoUsuario">Nuevo usuario</label>
+          <input type="text" id="nuevoUsuario" name="nuevoUsuario" placeholder="Ingresa tu nuevo usuario" required>
+        </div>
+
+        <div class="login-group">
+          <label for="pinRegistro">Pin de 4 dígitos</label>
+          <input type="password" id="pinRegistro" name="pinRegistro" placeholder="Ingresa tu pin" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required>
+        </div>
+
+        <div class="login-group">
+          <label for="confirmarPin">Confirmar pin</label>
+          <input type="password" id="confirmarPin" name="confirmarPin" placeholder="Confirma tu pin" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required>
+        </div>
+
+        <div class="login-group">
+          <label for="claveRegistro">Clave para poder hacer registro</label>
+          <input type="password" id="claveRegistro" name="claveRegistro" placeholder="Ingresa la clave de registro" required>
+        </div>
+
+        <button type="submit" class="login-button">Registrarse</button>
+
+        <div class="login-register">
+          <span class="login-register-separator">o</span>
+          <a href="login.html" class="login-register-link">Inicia sesión</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+</body>
+</html>

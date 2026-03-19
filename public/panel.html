@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PENDIENTES GyG</title>
+  <link rel="stylesheet" href="stylePanel.css">
+</head>
+<body>
+  <header class="page-header">
+  <div class="header-inner">
+    <div class="header-text">
+      <h1>PENDIENTES GyG</h1>
+      <p class="header-subtitle" style="text-align: center;">Panel principal</p>
+    </div>
+  </div>
+</header>
+
+  <main class="page-layout panel-home-layout">
+    <section class="left-panel panel-home-left">
+      <div class="left-panel-inner panel-home-left-inner">
+        <div class="welcome-card">
+          <img src="logo.png" alt="Logo GyG" class="welcome-logo">
+          <h2 class="welcome-message">
+            Bienvenid@ <span id="loggedUserName">USUARIO</span>
+          </h2>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right-panel panel-home-right">
+      <div class="right-panel-inner panel-home-right-inner">
+        <div class="menu-card">
+          <a href="empresas.html" class="menu-button">Empresas</a>
+          <a href="oficina.html" class="menu-button">Oficina</a>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+  const currentUser = localStorage.getItem('loggedUserName');
+
+  if (!currentUser) {
+    window.location.href = 'login.html';
+  } else {
+    const userNode = document.getElementById('loggedUserName');
+    if (userNode) {
+      userNode.textContent = currentUser;
+    }
+  }
+
+  function cerrarSesion() {
+    localStorage.removeItem('loggedUserName');
+    window.location.href = 'login.html';
+  }
+</script>
+
+</body>
+</html>

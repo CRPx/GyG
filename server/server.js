@@ -3,8 +3,20 @@ const cors = require('cors');
 const path = require('path');
 const ExcelJS = require('exceljs');
 const db = require('./db');
+const crypto = require('crypto');
+const CLAVE_REGISTRO = 'gyg2026registro';
+
 
 const app = express();
+const REGISTRO_CLAVE = process.env.REGISTRO_CLAVE || 'GYG-2026';
+
+function hashPin(pin) {
+  return crypto.createHash('sha256').update(String(pin)).digest('hex');
+}
+
+function isValidPin(pin) {
+  return /^\d{4}$/.test(String(pin));
+}
 
 app.use(cors());
 app.use(express.json());
@@ -42,6 +54,132 @@ function formatFechaHoraExcel(value) {
 
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
+
+app.post('/api/auth/registro', (req, res) => {
+  const { usuario, pin, confirmarPin, claveRegistro } = req.body;
+
+  const usuarioLimpio = String(usuario || '').trim();
+  const pinLimpio = String(pin || '').trim();
+  const confirmarPinLimpio = String(confirmarPin || '').trim();
+  const claveRegistroLimpia = String(claveRegistro || '').trim();
+
+  if (!usuarioLimpio || !pinLimpio || !confirmarPinLimpio || !claveRegistroLimpia) {
+    return res.status(400).json({
+      error: 'Todos los campos son obligatorios'
+    });
+  }
+
+  if (!isValidPin(pinLimpio)) {
+    return res.status(400).json({
+      error: 'El pin debe tener exactamente 4 dígitos'
+    });
+  }
+
+  if (pinLimpio !== confirmarPinLimpio) {
+    return res.status(400).json({
+      error: 'La confirmación del pin no coincide'
+    });
+  }
+
+  if (claveRegistro !== CLAVE_REGISTRO) {
+  return res.status(403).json({
+    error: 'La clave para registro es incorrecta'
+  });
+}
+
+  if (claveRegistroLimpia !== REGISTRO_CLAVE) {
+    return res.status(403).json({
+      error: 'La clave para registro es incorrecta'
+    });
+  }
+
+  db.query(
+    'SELECT id FROM usuarios WHERE usuario = ?',
+    [usuarioLimpio],
+    (err, results) => {
+      if (err) {
+        console.error('Error al validar usuario:', err);
+        return res.status(500).json({
+          error: 'Error al validar usuario',
+          detalle: err.message
+        });
+      }
+
+      if (results.length > 0) {
+        return res.status(409).json({
+          error: 'Ese usuario ya existe'
+        });
+      }
+
+      db.query(
+        'INSERT INTO usuarios (usuario, pin_hash) VALUES (?, ?)',
+        [usuarioLimpio, hashPin(pinLimpio)],
+        (insertErr, result) => {
+          if (insertErr) {
+            console.error('Error al registrar usuario:', insertErr);
+            return res.status(500).json({
+              error: 'Error al registrar usuario',
+              detalle: insertErr.message
+            });
+          }
+
+          res.json({
+            mensaje: 'Usuario registrado correctamente',
+            id: result.insertId,
+            usuario: usuarioLimpio
+          });
+        }
+      );
+    }
+  );
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { usuario, pin } = req.body;
+
+  const usuarioLimpio = String(usuario || '').trim();
+  const pinLimpio = String(pin || '').trim();
+
+  if (!usuarioLimpio || !pinLimpio) {
+    return res.status(400).json({
+      error: 'Usuario y pin son obligatorios'
+    });
+  }
+
+  db.query(
+    'SELECT id, usuario, pin_hash FROM usuarios WHERE usuario = ?',
+    [usuarioLimpio],
+    (err, results) => {
+      if (err) {
+        console.error('Error al iniciar sesión:', err);
+        return res.status(500).json({
+          error: 'Error al iniciar sesión',
+          detalle: err.message
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(401).json({
+          error: 'Usuario o pin incorrectos'
+        });
+      }
+
+      const user = results[0];
+      const pinHash = hashPin(pinLimpio);
+
+      if (user.pin_hash !== pinHash) {
+        return res.status(401).json({
+          error: 'Usuario o pin incorrectos'
+        });
+      }
+
+      res.json({
+        mensaje: 'Inicio de sesión correcto',
+        usuario: user.usuario
+      });
+    }
+  );
+});
 
 app.get('/api/solicitudes', (req, res) => {
   const sql = `

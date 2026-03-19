@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pendientes GyG</title>
+  <link rel="stylesheet" href="styleOficina.css">
+</head>
+<body>
+  <header class="page-header">
+    <div class="header-inner">
+      <img src="logo.png" alt="Logo GyG" class="header-logo">
+      <div class="header-text">
+        <h1>PENDIENTES GyG</h1>
+        <p class="header-subtitle">Organización y monitoreo de pendientes</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-layout">
+    <section class="left-panel">
+      <div class="left-panel-inner">
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-number stat-total" id="totalCount">0</div>
+            <div class="stat-label">Total de Pendientes</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-number stat-pendiente" id="pendienteCount">0</div>
+            <div class="stat-label">Pendientes</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-number stat-en-proceso" id="enProcesoCount">0</div>
+            <div class="stat-label">En Proceso</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-number stat-completado" id="completadoCount">0</div>
+            <div class="stat-label">Completados</div>
+          </div>
+        </div>
+
+        <div class="filters-container">
+          <span class="filter-label">Filtrar por:</span>
+
+          <div class="filters-row filters-row-selects">
+            <input type="date" id="filterFecha" class="filter-select">
+
+            <select id="filterEmpresa" class="filter-select">
+              <option value="">Empresas</option>
+            </select>
+
+            <select id="filterEstatus" class="filter-select">
+              <option value="">Estatus</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completado">Completado</option>
+            </select>
+          </div>
+
+          <div class="filters-row filters-row-actions">
+            <button class="btn-secondary" onclick="clearFilters()">Limpiar filtros</button>
+            <button class="btn-secondary" onclick="exportData()">Exportar a Excel</button>
+          </div>
+        </div>
+
+        <div class="tasks-grid" id="tasksGrid"></div>
+      </div>
+    </section>
+
+    <aside class="right-panel">
+      <div class="right-panel-inner">
+        <div class="form-container">
+          <div class="form-title">Nuevo Pendiente</div>
+
+          <form id="taskForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="date">Fecha</label>
+                <input type="date" id="date" required>
+              </div>
+
+              <div class="form-group">
+                <label for="empresa">Título</label>
+                <input type="text" id="empresa" placeholder="Ej. Visita a empresa" required>
+              </div>
+
+              <div class="form-group form-group-full">
+                <label for="pendientes">Detalles del pendiente</label>
+                <textarea id="pendientes" placeholder="Describe los pendientes o detalles del trabajo a realizar..." required></textarea>
+              </div>
+
+              <div class="form-group form-group-full">
+                <label for="observaciones">Observaciones</label>
+                <textarea id="observaciones" placeholder="Notas adicionales, restricciones, horarios, etc."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="estatus">Estatus</label>
+                <select id="estatus" required>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En proceso">En proceso</option>
+                  <option value="Completado">Completado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-buttons">
+              <button type="reset" class="btn-secondary">Limpiar</button>
+              <button type="submit" class="btn-primary">Guardar Pendiente</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div class="modal-header">Editar Pendiente</div>
+
+      <form id="editForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="editDate">Fecha</label>
+            <input type="date" id="editDate" required>
+          </div>
+
+          <div class="form-group">
+            <label for="editEmpresa">Empresa</label>
+            <input type="text" id="editEmpresa" required>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="editPendientes">Detalles</label>
+            <textarea id="editPendientes" required></textarea>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="editObservaciones">Observaciones</label>
+            <textarea id="editObservaciones"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="editEstatus">Estatus</label>
+            <select id="editEstatus" required>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completado">Completado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-buttons">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

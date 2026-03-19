@@ -693,6 +693,14 @@ button {
     background: linear-gradient(180deg, #F8F9FC 0%, #EEF2F7 100%);
   }
 
+  .right-panel {
+    order: 1;
+  }
+
+  .left-panel {
+    order: 2;
+  }
+
   .page-layout {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -721,6 +729,14 @@ button {
   .header-inner {
     flex-direction: column;
     text-align: center;
+  }
+
+  .right-panel {
+    order: 1;
+  }
+
+  .left-panel {
+    order: 2;
   }
 
   .header-text {

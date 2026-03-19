@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión | PENDIENTES GyG</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-panel">
+      <img src="logo.png" alt="Logo GyG" class="login-logo">
+      <h1 class="login-title">PENDIENTES GyG</h1>
+
+      <form class="login-form" id="loginForm">
+        <div class="login-group">
+          <label for="usuario">Usuario</label>
+          <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required>
+        </div>
+
+        <div class="login-group">
+          <label for="pin">Pin de 4 dígitos</label>
+          <input type="password" id="pin" name="pin" placeholder="Ingresa tu pin" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required>
+        </div>
+
+        <button type="submit" class="login-button">Iniciar sesión</button>
+
+        <div class="login-register">
+          <span class="login-register-separator">o</span>
+          <a href="registro.html" class="login-register-link">Regístrate</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+</body>
+</html>
