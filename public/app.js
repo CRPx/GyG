@@ -8,6 +8,7 @@ const filterEmpresa = document.getElementById('filterEmpresa');
 const filterEstatus = document.getElementById('filterEstatus');
 const editForm = document.getElementById('editForm');
 const editModal = document.getElementById('editModal');
+const filterFecha = document.getElementById('filterFecha');
 
 async function loadTasks() {
   try {
@@ -17,10 +18,12 @@ async function loadTasks() {
     tasks = data.map(item => ({
       id: item.id,
       date: formatDateForInput(item.fecha),
+      createdAt: item.creado_en,
       empresa: item.empresa,
       pendientes: item.pendientes,
       observaciones: item.observaciones || '',
-      estatus: item.estatus
+      estatus: item.estatus,
+      respuestas: Array.isArray(item.respuestas) ? item.respuestas : []
     }));
 
     renderTasks();
@@ -54,6 +57,21 @@ function getFormattedDate(dateString) {
   });
 }
 
+function getFormattedDateTime(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+
+  return date.toLocaleString('es-MX', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).replace(',', '');
+}
+
 taskForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -77,7 +95,6 @@ taskForm.addEventListener('submit', async (e) => {
     if (!res.ok) {
       console.error('Error backend:', data);
       alert(data?.detalle || data?.error || 'No se pudo guardar la solicitud');
-
       return;
     }
 
@@ -85,14 +102,13 @@ taskForm.addEventListener('submit', async (e) => {
     document.getElementById('date').valueAsDate = new Date();
     await loadTasks();
   } catch (error) {
-  console.error('Error al guardar solicitud:', error);
-  alert(`${error.name}: ${error.message}`);
-}
+    console.error('Error al guardar solicitud:', error);
+    alert(`${error.name}: ${error.message}`);
+  }
 });
 
-
 function renderTasks() {
-  const filterFechaValue = document.getElementById('filterFecha')?.value || '';
+  const filterFechaValue = filterFecha?.value || '';
   const filterEmpresaValue = filterEmpresa.value;
   const filterEstatusValue = filterEstatus.value;
 
@@ -100,11 +116,10 @@ function renderTasks() {
     const fechaMatch = !filterFechaValue || task.date === filterFechaValue;
     const empresaMatch = !filterEmpresaValue || task.empresa === filterEmpresaValue;
     const estatusMatch = !filterEstatusValue || task.estatus === filterEstatusValue;
-
     return fechaMatch && empresaMatch && estatusMatch;
   });
 
-  filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  filtered.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
   tasksGrid.innerHTML = '';
 
@@ -122,7 +137,7 @@ function renderTasks() {
     const isExpanded = expandedTaskId === task.id;
     const statusClass = `status-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
     const headerClass = `header-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
-    const formattedDate = getFormattedDate(task.date);
+    const formattedCreatedAt = getFormattedDateTime(task.createdAt);
 
     const statusEmoji = {
       'Pendiente': '🔴',
@@ -130,62 +145,128 @@ function renderTasks() {
       'Completado': '🟢'
     };
 
+    const responsesHtml = task.respuestas && task.respuestas.length
+      ? task.respuestas.map(item => `
+          <div class="response-item">
+            <div class="response-meta">${getFormattedDateTime(item.creado_en)}</div>
+            <div class="response-text">${escapeHtml(item.respuesta)}</div>
+          </div>
+        `).join('')
+      : `<div class="response-empty">No hay respuestas aún</div>`;
+
     const card = document.createElement('div');
     card.className = `task-card ${statusClass} ${isExpanded ? 'expanded' : ''}`;
 
     card.innerHTML = `
-  <div class="task-header ${headerClass}">
-    <div class="task-company">${escapeHtml(task.empresa)}</div>
-    <div class="task-date">${formattedDate}</div>
-  </div>
-
-  <div class="task-body">
-    <div class="task-preview">
-      <div class="task-field">
-        <div class="task-field-label">Detalles del Trabajo</div>
-        <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+      <div class="task-header ${headerClass}">
+        <div class="task-company">${escapeHtml(task.empresa)}</div>
+        <div class="task-date">${formattedCreatedAt}</div>
       </div>
-    </div>
 
-    <div class="task-extra">
-      ${task.observaciones ? `
-        <div class="task-field">
-          <div class="task-field-label">Observaciones</div>
-          <div class="task-field-value">${escapeHtml(task.observaciones)}</div>
+      <div class="task-body">
+        <div class="task-preview">
+          <div class="task-field">
+            <div class="task-field-label">Detalles del Trabajo</div>
+            <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+          </div>
         </div>
-      ` : ''}
 
-      <div class="task-field">
-        <div class="task-field-label">Estatus</div>
-        <span class="status-badge ${statusClass}">
-          ${statusEmoji[task.estatus]} ${task.estatus}
-        </span>
+        <div class="task-extra">
+          <div class="task-field">
+            <div class="task-field-label">Observaciones</div>
+            <div class="task-field-value">
+              ${task.observaciones ? escapeHtml(task.observaciones) : 'Sin observaciones'}
+            </div>
+          </div>
+
+          <div class="task-field">
+            <div class="task-field-label">Respuestas</div>
+            <div class="task-field-value responses-box">
+              ${responsesHtml}
+            </div>
+          </div>
+
+          <div class="task-field">
+            <div class="task-field-label">Agregar respuestas</div>
+            <div class="response-form" onclick="event.stopPropagation()">
+              <textarea
+                id="responseInput-${task.id}"
+                class="response-textarea"
+                placeholder="Escribe una respuesta para este pendiente..."
+              ></textarea>
+              <button
+                class="btn-small btn-edit"
+                onclick="event.stopPropagation(); addResponse(${task.id})"
+              >
+                Guardar respuesta
+              </button>
+            </div>
+          </div>
+
+          <div class="task-field">
+            <div class="task-field-label">Estatus</div>
+            <span class="status-badge ${statusClass}">
+              ${statusEmoji[task.estatus]} ${task.estatus}
+            </span>
+          </div>
+
+          <div class="task-actions" onclick="event.stopPropagation()">
+            <button
+              class="btn-small btn-edit"
+              onclick="event.stopPropagation(); openEditModal(${task.id})"
+            >
+              Editar
+            </button>
+
+            <button
+              class="btn-small btn-delete"
+              onclick="event.stopPropagation(); deleteTask(${task.id})"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
       </div>
-
-      <div class="task-actions" onclick="event.stopPropagation()">
-        <button
-          class="btn-small btn-edit"
-          onclick="event.stopPropagation(); openEditModal(${task.id})"
-        >
-          Editar
-        </button>
-
-        <button
-          class="btn-small btn-delete"
-          onclick="event.stopPropagation(); deleteTask(${task.id})"
-        >
-          Eliminar
-        </button>
-      </div>
-    </div>
-  </div>
-`;
+    `;
 
     card.addEventListener('click', () => toggleTaskDetails(task.id));
     tasksGrid.appendChild(card);
   });
 }
 
+async function addResponse(taskId) {
+  const input = document.getElementById(`responseInput-${taskId}`);
+  if (!input) return;
+
+  const respuesta = input.value.trim();
+
+  if (!respuesta) {
+    alert('Escribe una respuesta antes de guardar.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/solicitudes/${taskId}/respuestas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ respuesta })
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      alert(data?.detalle || data?.error || 'No se pudo guardar la respuesta');
+      return;
+    }
+
+    await loadTasks();
+    expandedTaskId = taskId;
+    renderTasks();
+  } catch (error) {
+    console.error('Error al guardar respuesta:', error);
+    alert('No se pudo guardar la respuesta');
+  }
+}
 
 function updateStats() {
   const total = tasks.length;
@@ -203,7 +284,7 @@ function updateFilterOptions() {
   const empresas = [...new Set(tasks.map(t => t.empresa))].sort();
   const currentValue = filterEmpresa.value;
 
-  filterEmpresa.innerHTML = `<option value="">Empresas</option>`;
+  filterEmpresa.innerHTML = '<option value="">Todas las Empresas</option>';
 
   empresas.forEach(empresa => {
     const option = document.createElement('option');
@@ -236,7 +317,6 @@ function closeModal() {
 
 editForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-
   if (!editingId) return;
 
   const updatedTask = {
@@ -254,9 +334,7 @@ editForm.addEventListener('submit', async (e) => {
       body: JSON.stringify(updatedTask)
     });
 
-    if (!res.ok) {
-      throw new Error('Error al actualizar');
-    }
+    if (!res.ok) throw new Error('Error al actualizar');
 
     closeModal();
     await loadTasks();
@@ -275,9 +353,7 @@ async function deleteTask(id) {
       method: 'DELETE'
     });
 
-    if (!res.ok) {
-      throw new Error('Error al eliminar');
-    }
+    if (!res.ok) throw new Error('Error al eliminar');
 
     await loadTasks();
   } catch (error) {
@@ -290,6 +366,13 @@ function exportData() {
   window.location.href = '/api/exportar-excel';
 }
 
+function clearFilters() {
+  if (filterFecha) filterFecha.value = '';
+  filterEmpresa.value = '';
+  filterEstatus.value = '';
+  renderTasks();
+}
+
 function escapeHtml(text) {
   return String(text)
     .replace(/&/g, '&amp;')
@@ -299,21 +382,12 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-function clearFilters() {
-  filterFecha.value = '';
-  filterEmpresa.value = '';
-  filterEstatus.value = '';
-  renderTasks();
-}
-
-filterFecha.addEventListener('change', renderTasks);
+if (filterFecha) filterFecha.addEventListener('change', renderTasks);
 filterEmpresa.addEventListener('change', renderTasks);
 filterEstatus.addEventListener('change', renderTasks);
 
 window.addEventListener('click', (e) => {
-  if (e.target === editModal) {
-    closeModal();
-  }
+  if (e.target === editModal) closeModal();
 });
 
 document.getElementById('date').valueAsDate = new Date();
@@ -324,3 +398,4 @@ window.closeModal = closeModal;
 window.deleteTask = deleteTask;
 window.exportData = exportData;
 window.clearFilters = clearFilters;
+window.addResponse = addResponse;

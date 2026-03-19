@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendientes GyG</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pendientes GyG</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="page-header">
-        <div class="header-inner">
-            <img src="logo.png" alt="Logo GyG" class="header-logo">
-
-            <div class="header-text">
-            <h1>PENDIENTES GyG</h1>
-            <p class="header-subtitle">Organización y monitoreo de pendientes</p>
-            </div>
-        </div>
-    </header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Logo GyG" class="header-logo">
+      <div class="header-text">
+        <h1>PENDIENTES GyG</h1>
+        <p class="header-subtitle">Organización y monitoreo de pendientes</p>
+      </div>
+    </div>
+  </header>
 
   <main class="page-layout">
     <section class="left-panel">
@@ -46,21 +45,25 @@
         <div class="filters-container">
           <span class="filter-label">Filtrar por:</span>
 
-          <input type="date" id="filterFecha" class="filter-select" placeholder="Fecha...">
+          <div class="filters-row filters-row-selects">
+            <input type="date" id="filterFecha" class="filter-select">
 
-          <select id="filterEmpresa" class="filter-select" style="height:45px;">
-            <option value="">Empresas</option>
-          </select>
+            <select id="filterEmpresa" class="filter-select">
+              <option value="">Empresas</option>
+            </select>
 
-          <select id="filterEstatus" class="filter-select" style="height:45px;">
-            <option value="">Estatus</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En proceso">En proceso</option>
-            <option value="Completado">Completado</option>
-          </select>
+            <select id="filterEstatus" class="filter-select">
+              <option value="">Estatus</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completado">Completado</option>
+            </select>
+          </div>
 
-          <button class="btn-secondary" onclick="clearFilters()">Limpiar filtros</button>
-          <button class="btn-secondary" onclick="exportData()">Exportar a Excel</button>
+          <div class="filters-row filters-row-actions">
+            <button class="btn-secondary" onclick="clearFilters()">Limpiar filtros</button>
+            <button class="btn-secondary" onclick="exportData()">Exportar a Excel</button>
+          </div>
         </div>
 
         <div class="tasks-grid" id="tasksGrid"></div>
@@ -152,6 +155,7 @@
         </div>
 
         <div class="form-buttons">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
           <button type="submit" class="btn-primary">Guardar Cambios</button>
         </div>
       </form>
@@ -160,6 +164,4 @@
 
   <script src="app.js"></script>
 </body>
-
-
 </html>

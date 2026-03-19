@@ -10,11 +10,56 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+function formatFechaExcel(value) {
+  if (!value) return '';
+
+  if (value instanceof Date && !isNaN(value)) {
+    const year = value.getUTCFullYear();
+    const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(value.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  if (typeof value === 'string') {
+    if (value.includes('T')) return value.split('T')[0];
+    return value.slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
+}
+
+function formatFechaHoraExcel(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (isNaN(date)) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 app.get('/api/solicitudes', (req, res) => {
   const sql = `
-    SELECT id, fecha, empresa, pendientes, observaciones, estatus
-    FROM solicitudes1
-    ORDER BY fecha DESC, id DESC
+    SELECT
+      s.id,
+      s.fecha,
+      s.creado_en,
+      s.empresa,
+      s.pendientes,
+      s.observaciones,
+      s.estatus,
+      r.id AS respuesta_id,
+      r.respuesta,
+      r.creado_en AS respuesta_creado_en
+    FROM solicitudes1 s
+    LEFT JOIN solicitud_respuestas r
+      ON r.solicitud_id = s.id
+    ORDER BY s.creado_en DESC, s.id DESC, r.creado_en ASC, r.id ASC
   `;
 
   db.query(sql, (err, results) => {
@@ -26,16 +71,48 @@ app.get('/api/solicitudes', (req, res) => {
       });
     }
 
-    res.json(results);
+    const grouped = [];
+    const map = new Map();
+
+    results.forEach(row => {
+      if (!map.has(row.id)) {
+        const task = {
+          id: row.id,
+          fecha: row.fecha,
+          creado_en: row.creado_en,
+          empresa: row.empresa,
+          pendientes: row.pendientes,
+          observaciones: row.observaciones || '',
+          estatus: row.estatus,
+          respuestas: []
+        };
+
+        map.set(row.id, task);
+        grouped.push(task);
+      }
+
+      if (row.respuesta_id) {
+        map.get(row.id).respuestas.push({
+          id: row.respuesta_id,
+          respuesta: row.respuesta,
+          creado_en: row.respuesta_creado_en
+        });
+      }
+    });
+
+    res.json(grouped);
   });
 });
 
 app.post('/api/solicitudes', (req, res) => {
   console.log('Body recibido:', req.body);
+
   const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
 
   if (!fecha || !empresa || !pendientes || !estatus) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    return res.status(400).json({
+      error: 'Faltan campos obligatorios'
+    });
   }
 
   const sql = `
@@ -55,7 +132,10 @@ app.post('/api/solicitudes', (req, res) => {
         });
       }
 
-      res.json({ mensaje: 'Solicitud guardada', id: result.insertId });
+      res.json({
+        mensaje: 'Solicitud guardada',
+        id: result.insertId
+      });
     }
   );
 });
@@ -119,30 +199,42 @@ app.delete('/api/solicitudes/:id', (req, res) => {
   );
 });
 
-function formatFechaExcel(value) {
-  if (!value) return '';
+app.post('/api/solicitudes/:id/respuestas', (req, res) => {
+  const { id } = req.params;
+  const { respuesta } = req.body;
 
-  if (value instanceof Date && !isNaN(value)) {
-    const year = value.getUTCFullYear();
-    const month = String(value.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(value.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  if (!respuesta || !respuesta.trim()) {
+    return res.status(400).json({
+      error: 'La respuesta es obligatoria'
+    });
   }
 
-  if (typeof value === 'string') {
-    if (value.includes('T')) return value.split('T')[0];
-    return value.slice(0, 10);
-  }
+  const sql = `
+    INSERT INTO solicitud_respuestas (solicitud_id, respuesta)
+    VALUES (?, ?)
+  `;
 
-  return String(value).slice(0, 10);
-}
+  db.query(sql, [id, respuesta.trim()], (err, result) => {
+    if (err) {
+      console.error('Error al guardar respuesta:', err);
+      return res.status(500).json({
+        error: 'Error al guardar respuesta',
+        detalle: err.message
+      });
+    }
 
+    res.json({
+      mensaje: 'Respuesta guardada',
+      id: result.insertId
+    });
+  });
+});
 
 app.get('/api/exportar-excel', (req, res) => {
   const sql = `
-    SELECT id, fecha, empresa, pendientes, observaciones, estatus
+    SELECT id, fecha, creado_en, empresa, pendientes, observaciones, estatus
     FROM solicitudes1
-    ORDER BY fecha DESC, id DESC
+    ORDER BY creado_en DESC, id DESC
   `;
 
   db.query(sql, async (err, results) => {
@@ -163,6 +255,7 @@ app.get('/api/exportar-excel', (req, res) => {
 
       worksheet.columns = [
         { header: 'Fecha', key: 'fecha', width: 15 },
+        { header: 'Creado en', key: 'creado_en', width: 22 },
         { header: 'Empresa', key: 'empresa', width: 28 },
         { header: 'Detalles del Trabajo', key: 'pendientes', width: 45 },
         { header: 'Observaciones', key: 'observaciones', width: 40 },
@@ -179,15 +272,18 @@ app.get('/api/exportar-excel', (req, res) => {
           name: 'Calibri',
           size: 12
         };
+
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
           fgColor: { argb: 'FF667EEA' }
         };
+
         cell.alignment = {
           horizontal: 'center',
           vertical: 'middle'
         };
+
         cell.border = {
           top: { style: 'thin', color: { argb: 'FF000000' } },
           left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -197,10 +293,9 @@ app.get('/api/exportar-excel', (req, res) => {
       });
 
       results.forEach((item) => {
-        const fecha = formatFechaExcel(item.fecha);
-
         const row = worksheet.addRow({
-          fecha,
+          fecha: formatFechaExcel(item.fecha),
+          creado_en: formatFechaHoraExcel(item.creado_en),
           empresa: item.empresa || '',
           pendientes: item.pendientes || '',
           observaciones: item.observaciones || '',
@@ -213,12 +308,14 @@ app.get('/api/exportar-excel', (req, res) => {
             horizontal: 'left',
             wrapText: true
           };
+
           cell.border = {
             top: { style: 'thin', color: { argb: 'FFBFBFBF' } },
             left: { style: 'thin', color: { argb: 'FFBFBFBF' } },
             bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
             right: { style: 'thin', color: { argb: 'FFBFBFBF' } }
           };
+
           cell.font = {
             name: 'Calibri',
             size: 11
@@ -261,12 +358,13 @@ app.get('/api/exportar-excel', (req, res) => {
       });
 
       worksheet.views = [{ state: 'frozen', ySplit: 1 }];
-      worksheet.autoFilter = 'A1:E1';
+      worksheet.autoFilter = 'A1:F1';
 
       res.setHeader(
         'Content-Type',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       );
+
       res.setHeader(
         'Content-Disposition',
         `attachment; filename="pendientes-${new Date().toISOString().split('T')[0]}.xlsx"`

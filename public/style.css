@@ -345,36 +345,55 @@ button {
   background: #E6ECF6;
 }
 
-/* Filters compactos */
+/* Filters */
 
 .filters-container {
   align-self: flex-start;
   width: fit-content;
   max-width: 100%;
-  padding: 10px 12px;
-  gap: 8px;
+  padding: 12px 14px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .filter-label {
   font-weight: 800;
   color: var(--text-muted);
   font-size: 14px;
-  margin-right: 2px;
   white-space: nowrap;
+  margin: 0;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.filters-row-actions {
+  gap: 10px;
 }
 
 .filter-select {
-  min-width: 130px;
-  max-width: 165px;
-  height: 40px;
+  min-width: 160px;
+  max-width: 230px;
+  height: 42px;
 }
 
 #filterFecha.filter-select {
-  min-width: 140px;
-  max-width: 140px;
+  min-width: 145px;
+  max-width: 145px;
+}
+
+#filterEmpresa,
+#filterEstatus {
+  min-width: 240px;
+  max-width: 280px;
+  padding-right: 34px;
 }
 
 .filters-container .btn-secondary {
@@ -481,7 +500,7 @@ button {
 }
 
 .task-card.expanded .task-extra {
-  max-height: 500px;
+  max-height: 1200px;
   opacity: 1;
   margin-top: 14px;
 }
@@ -559,6 +578,52 @@ button {
 
 .btn-delete:hover {
   background: #A8000D;
+}
+
+/* Responses */
+
+.responses-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.response-item {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.response-meta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.response-text {
+  font-size: 14px;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.response-empty {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.response-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.response-textarea {
+  min-height: 95px;
+  resize: vertical;
 }
 
 /* Empty state */
@@ -682,13 +747,20 @@ button {
   .filters-container {
     width: 100%;
     align-self: stretch;
+  }
+
+  .filters-row,
+  .filters-row-actions {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
 
   .filter-select,
   #filterFecha.filter-select,
-  .filters-container button {
+  #filterEmpresa,
+  #filterEstatus,
+  .filters-row-actions button {
     width: 100%;
     max-width: 100%;
   }
@@ -712,14 +784,13 @@ button {
   }
 
   .task-header {
-  flex-direction: column;
-  align-items: flex-start;
-}
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.task-date {
-  text-align: left;
-  margin-left: 0;
-  white-space: normal;
-}
-
+  .task-date {
+    text-align: left;
+    margin-left: 0;
+    white-space: normal;
+  }
 }
