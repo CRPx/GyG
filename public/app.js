@@ -62,14 +62,19 @@ function getFormattedDateTime(value) {
 
   const date = new Date(value);
 
-  return date.toLocaleString('es-MX', {
+  const hora = date.toLocaleTimeString('es-MX', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
+    hour12: false
+  });
+
+  const fecha = date.toLocaleDateString('es-MX', {
     day: '2-digit',
     month: 'short',
     year: 'numeric'
-  }).replace(',', '');
+  });
+
+  return `${hora}, ${fecha}`;
 }
 
 taskForm.addEventListener('submit', async (e) => {
