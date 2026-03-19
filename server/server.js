@@ -8,7 +8,6 @@ const CLAVE_REGISTRO = 'gyg2026registro';
 
 
 const app = express();
-const REGISTRO_CLAVE = process.env.REGISTRO_CLAVE || 'GYG-2026';
 
 function hashPin(pin) {
   return crypto.createHash('sha256').update(String(pin)).digest('hex');
@@ -81,13 +80,7 @@ app.post('/api/auth/registro', (req, res) => {
     });
   }
 
-  if (claveRegistro !== CLAVE_REGISTRO) {
-  return res.status(403).json({
-    error: 'La clave para registro es incorrecta'
-  });
-}
-
-  if (claveRegistroLimpia !== REGISTRO_CLAVE) {
+  if (claveRegistroLimpia !== CLAVE_REGISTRO) {
     return res.status(403).json({
       error: 'La clave para registro es incorrecta'
     });
@@ -98,7 +91,6 @@ app.post('/api/auth/registro', (req, res) => {
     [usuarioLimpio],
     (err, results) => {
       if (err) {
-        console.error('Error al validar usuario:', err);
         return res.status(500).json({
           error: 'Error al validar usuario',
           detalle: err.message
@@ -116,7 +108,6 @@ app.post('/api/auth/registro', (req, res) => {
         [usuarioLimpio, hashPin(pinLimpio)],
         (insertErr, result) => {
           if (insertErr) {
-            console.error('Error al registrar usuario:', insertErr);
             return res.status(500).json({
               error: 'Error al registrar usuario',
               detalle: insertErr.message
@@ -133,6 +124,7 @@ app.post('/api/auth/registro', (req, res) => {
     }
   );
 });
+
 
 app.post('/api/auth/login', (req, res) => {
   const { usuario, pin } = req.body;
