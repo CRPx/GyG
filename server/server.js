@@ -1,13 +1,25 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const ExcelJS = require('exceljs');
 const db = require('./db');
 const crypto = require('crypto');
-const CLAVE_REGISTRO = 'gyg2026registro';
-
+const session = require('express-session');
 
 const app = express();
+
+const CLAVE_REGISTRO = process.env.CLAVE_REGISTRO;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
+if (!CLAVE_REGISTRO) {
+  throw new Error('Falta CLAVE_REGISTRO en el archivo .env');
+}
+
+if (!SESSION_SECRET) {
+  throw new Error('Falta SESSION_SECRET en el archivo .env');
+}
 
 function hashPin(pin) {
   return crypto.createHash('sha256').update(String(pin)).digest('hex');
@@ -17,9 +29,27 @@ function isValidPin(pin) {
   return /^\d{4}$/.test(String(pin));
 }
 
-app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'public')));
+
+app.use(session({
+  name: 'gyg_sid',
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 1000 * 60 * 60 * 8
+  }
+}));
+
+function requireAuth(req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'No autenticado' });
+  }
+  next();
+}
 
 function formatFechaExcel(value) {
   if (!value) return '';
@@ -165,6 +195,11 @@ app.post('/api/auth/login', (req, res) => {
         });
       }
 
+      req.session.user = {
+        id: user.id,
+        usuario: user.usuario
+      };
+
       res.json({
         mensaje: 'Inicio de sesión correcto',
         usuario: user.usuario
@@ -173,7 +208,29 @@ app.post('/api/auth/login', (req, res) => {
   );
 });
 
-app.get('/api/solicitudes', (req, res) => {
+app.get('/api/auth/me', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ authenticated: false });
+  }
+
+  res.json({
+    authenticated: true,
+    user: req.session.user
+  });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'No se pudo cerrar la sesión' });
+    }
+
+    res.clearCookie('gyg_sid');
+    res.json({ mensaje: 'Sesión cerrada' });
+  });
+});
+
+app.get('/api/solicitudes', requireAuth, (req, res) => {
   const sql = `
     SELECT
       s.id,
@@ -234,7 +291,7 @@ app.get('/api/solicitudes', (req, res) => {
   });
 });
 
-app.post('/api/solicitudes', (req, res) => {
+app.post('/api/solicitudes', requireAuth, (req, res) => {
   console.log('Body recibido:', req.body);
 
   const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
@@ -270,7 +327,7 @@ app.post('/api/solicitudes', (req, res) => {
   );
 });
 
-app.put('/api/solicitudes/:id', (req, res) => {
+app.put('/api/solicitudes/:id', requireAuth, (req, res) => {
   const { id } = req.params;
   const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
 
@@ -306,7 +363,7 @@ app.put('/api/solicitudes/:id', (req, res) => {
   );
 });
 
-app.delete('/api/solicitudes/:id', (req, res) => {
+app.delete('/api/solicitudes/:id', requireAuth, (req, res) => {
   const { id } = req.params;
 
   db.query(
@@ -329,7 +386,7 @@ app.delete('/api/solicitudes/:id', (req, res) => {
   );
 });
 
-app.post('/api/solicitudes/:id/respuestas', (req, res) => {
+app.post('/api/solicitudes/:id/respuestas', requireAuth, (req, res) => {
   const { id } = req.params;
   const { respuesta } = req.body;
 
@@ -360,7 +417,7 @@ app.post('/api/solicitudes/:id/respuestas', (req, res) => {
   });
 });
 
-app.get('/api/exportar-excel', (req, res) => {
+app.get('/api/exportar-excel', requireAuth, (req, res) => {
   const sql = `
     SELECT id, fecha, creado_en, empresa, pendientes, observaciones, estatus
     FROM solicitudes1

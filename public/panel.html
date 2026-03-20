@@ -6,7 +6,7 @@
   <title>PENDIENTES GyG</title>
   <link rel="stylesheet" href="stylePanel.css">
 </head>
-<body>
+<body data-page="panel">
   <header class="page-header">
   <div class="header-inner">
     <div class="header-text">
@@ -38,23 +38,7 @@
     </aside>
   </main>
 
-  <script>
-  const currentUser = localStorage.getItem('loggedUserName');
-
-  if (!currentUser) {
-    window.location.href = 'login.html';
-  } else {
-    const userNode = document.getElementById('loggedUserName');
-    if (userNode) {
-      userNode.textContent = currentUser;
-    }
-  }
-
-  function cerrarSesion() {
-    localStorage.removeItem('loggedUserName');
-    window.location.href = 'login.html';
-  }
-</script>
+  <script defer src="auth.js"></script>
 
 </body>
 </html>

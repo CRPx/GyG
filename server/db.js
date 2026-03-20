@@ -1,19 +1,31 @@
+// const mysql = require('mysql2');
+
+// const db = mysql.createConnection({
+//   host: process.env.MYSQLHOST || 'localhost',
+//   port: process.env.MYSQLPORT || 3306,
+//   user: process.env.MYSQLUSER || 'root',
+//   password: process.env.MYSQLPASSWORD || '',
+//   database: process.env.MYSQLDATABASE || 'solicitudesdb'
+// });
+
+// db.connect((err) => {
+//   if (err) {
+//     console.error('Error de conexión a MySQL:', err);
+//     return;
+//   }
+//   console.log('Conectado a MySQL');
+// });
+
+// module.exports = db;
+
+require('dotenv').config();
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || 'localhost',
-  port: process.env.MYSQLPORT || 3306,
-  user: process.env.MYSQLUSER || 'root',
-  password: process.env.MYSQLPASSWORD || '',
-  database: process.env.MYSQLDATABASE || 'solicitudesdb'
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error de conexión a MySQL:', err);
-    return;
-  }
-  console.log('Conectado a MySQL');
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
 module.exports = db;
