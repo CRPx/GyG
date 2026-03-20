@@ -6,6 +6,15 @@
   <title>PENDIENTES GyG</title>
   <link rel="stylesheet" href="inicio.css">
 </head>
+
+<script>
+  const currentUser = localStorage.getItem('loggedUserName');
+
+  if (currentUser) {
+    window.location.href = 'panel.html';
+  }
+</script>
+
 <body>
   <main class="landing-page">
     <section class="landing-panel">

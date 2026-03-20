@@ -6,6 +6,15 @@
   <title>Iniciar sesión | PENDIENTES GyG</title>
   <link rel="stylesheet" href="login.css">
 </head>
+
+<script src="auth.js">
+  const currentUser = localStorage.getItem('loggedUserName');
+
+  if (currentUser) {
+    window.location.href = 'panel.html';
+  }
+</script>
+
 <body>
   <main class="login-page">
     <section class="login-panel">
@@ -32,7 +41,5 @@
       </form>
     </section>
   </main>
-
-  <script src="auth.js"></script>
 </body>
 </html>
