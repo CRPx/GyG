@@ -31,7 +31,7 @@ function isValidPin(pin) {
 }
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use(session({
   name: 'gyg_sid',
@@ -232,9 +232,6 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
-});
 
 app.get('/api/solicitudes', requireAuth, (req, res) => {
   const sql = `
