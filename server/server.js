@@ -13,7 +13,6 @@ const app = express();
 const CLAVE_REGISTRO = process.env.CLAVE_REGISTRO;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
-app.use(express.static(path.join(__dirname, 'public')));
 
 if (!CLAVE_REGISTRO) {
   throw new Error('Falta CLAVE_REGISTRO en el archivo .env');
@@ -32,6 +31,7 @@ function isValidPin(pin) {
 }
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
   name: 'gyg_sid',
