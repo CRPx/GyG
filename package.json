@@ -17,6 +17,7 @@
     "excel": "^1.0.1",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
+    "express-mysql-session": "^3.0.3",
     "express-session": "^1.19.0",
     "js": "^0.1.0",
     "mysql2": "^3.19.1"
