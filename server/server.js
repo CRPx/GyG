@@ -7,12 +7,20 @@ const ExcelJS = require('exceljs');
 const db = require('./db');
 const crypto = require('crypto');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 
 const app = express();
 
 const CLAVE_REGISTRO = process.env.CLAVE_REGISTRO;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
+const sessionStore = new MySQLStore({
+  host: process.env.MYSQLHOST,
+  port: process.env.MYSQLPORT,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDB,
+});
 
 if (!CLAVE_REGISTRO) {
   throw new Error('Falta CLAVE_REGISTRO en el archivo .env');
@@ -33,7 +41,8 @@ function isValidPin(pin) {
 app.use(express.json());
 app.use(session({
   name: 'gyg_sid',
-  secret: SESSION_SECRET,
+  secret: process.env.SESSION_SECRET,
+  store: sessionStore,   // ← aquí el cambio clave
   resave: false,
   saveUninitialized: false,
   cookie: {
