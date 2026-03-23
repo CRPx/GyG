@@ -19,7 +19,7 @@ const sessionStore = new MySQLStore({
   port: process.env.MYSQLPORT,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDB,
+  database: process.env.MYSQLDATABASE,
 });
 
 if (!CLAVE_REGISTRO) {
