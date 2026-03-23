@@ -47,8 +47,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    secure: true,
     maxAge: 1000 * 60 * 60 * 8
   }
 }));
@@ -210,6 +210,14 @@ app.post('/api/auth/login', (req, res) => {
         id: user.id,
         usuario: user.usuario
       };
+
+      // Guarda explícitamente antes de responder
+      req.session.save((err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Error al guardar sesión' });
+        }
+        res.json({ mensaje: 'Inicio de sesión correcto', usuario: user.usuario });
+      });
 
       res.json({
         mensaje: 'Inicio de sesión correcto',
