@@ -31,8 +31,6 @@ function isValidPin(pin) {
 }
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
 app.use(session({
   name: 'gyg_sid',
   secret: SESSION_SECRET,
@@ -45,6 +43,8 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 8
   }
 }));
+
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 function requireAuth(req, res, next) {
   if (!req.session || !req.session.user) {
