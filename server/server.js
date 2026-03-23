@@ -219,10 +219,6 @@ app.post('/api/auth/login', (req, res) => {
         res.json({ mensaje: 'Inicio de sesión correcto', usuario: user.usuario });
       });
 
-      res.json({
-        mensaje: 'Inicio de sesión correcto',
-        usuario: user.usuario
-      });
     }
   );
 });
