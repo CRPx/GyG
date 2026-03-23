@@ -25,6 +25,8 @@ async function handlePageGuards() {
   const publicPages = ['index', 'login', 'registro'];
   const privatePages = ['panel', 'oficina'];
 
+  console.log('Página:', page);
+  console.log('Usuario actual:', currentUser); // ← agrega esto temporalmente
   if (publicPages.includes(page) && currentUser) {
     window.location.href = 'panel.html';
     return;
