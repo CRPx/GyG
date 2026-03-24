@@ -175,8 +175,8 @@ app.post('/api/auth/registro', (req, res) => {
 
 
 app.post('/api/auth/login', (req, res) => {
+  console.log('➡️  Login recibido:', req.body.usuario);
   const { usuario, pin } = req.body;
-
   const usuarioLimpio = String(usuario || '').trim();
   const pinLimpio = String(pin || '').trim();
 
@@ -213,6 +213,7 @@ app.post('/api/auth/login', (req, res) => {
         });
       }
 
+       console.log('✅ Usuario autenticado:', user.id);
       req.session.user = {
         id: user.id,
         usuario: user.usuario
@@ -222,10 +223,14 @@ app.post('/api/auth/login', (req, res) => {
       // Guarda explícitamente antes de responder
       req.session.save((err) => {
         if (err) {
+          console.error('❌ Error guardando sesión:', err);
           return res.status(500).json({ error: 'Error al guardar sesión' });
         }
+        console.log('💾 Sesión guardada. ID:', req.session.id);
         res.json({ mensaje: 'Inicio de sesión correcto', usuario: user.usuario });
       });
+
+
 
     }
   );
