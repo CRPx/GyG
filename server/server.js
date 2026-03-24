@@ -53,8 +53,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'none',
-    secure: true,
+    sameSite: 'none',   // Cambia de 'none' a 'lax'
+    secure: true,     // Cambia de true a false (solo para desarrollo)
     maxAge: 1000 * 60 * 60 * 8
   }
 }));
@@ -229,16 +229,14 @@ app.post('/api/auth/login', (req, res) => {
   );
 });
 
-app.get('/api/auth/me', (req, res) => {
-  if (!req.session || !req.session.user) {
-    return res.status(401).json({ authenticated: false });
-  }
+  app.get('/api/auth/me', (req, res) => {
+    console.log('Session en /me:', req.session);
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ authenticated: false });
+    }
 
-  res.json({
-    authenticated: true,
-    user: req.session.user
+    res.json({ authenticated: true, user: req.session.user });
   });
-});
 
 app.post('/api/auth/logout', (req, res) => {
   req.session.destroy((err) => {
