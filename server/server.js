@@ -53,9 +53,10 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'none',   // Cambia de 'none' a 'lax'
-    secure: true,     // Cambia de true a false (solo para desarrollo)
-    maxAge: 1000 * 60 * 60 * 8
+    sameSite: 'none',
+    secure: true,
+    maxAge: 1000 * 60 * 60 * 8,
+    path: '/'
   }
 }));
 
@@ -216,6 +217,7 @@ app.post('/api/auth/login', (req, res) => {
         id: user.id,
         usuario: user.usuario
       };
+
 
       // Guarda explícitamente antes de responder
       req.session.save((err) => {
