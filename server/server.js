@@ -22,6 +22,12 @@ const sessionStore = new MySQLStore({
   database: process.env.MYSQLDATABASE,
 });
 
+sessionStore.onReady().then(() => {
+  console.log('MySQLStore lista y conectada');
+}).catch(err => {
+  console.error('Error al conectar MySQLStore:', err);
+});
+
 if (!CLAVE_REGISTRO) {
   throw new Error('Falta CLAVE_REGISTRO en el archivo .env');
 }
