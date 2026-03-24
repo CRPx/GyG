@@ -45,19 +45,19 @@ function isValidPin(pin) {
 }
 
 app.use(express.json());
-// app.use(session({
-//   name: 'gyg_sid',
-//   secret: process.env.SESSION_SECRET,
-//   store: sessionStore,   // ← aquí el cambio clave
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     httpOnly: true,
-//     sameSite: 'none',
-//     secure: true,
-//     maxAge: 1000 * 60 * 60 * 8
-//   }
-// }));
+app.use(session({
+  name: 'gyg_sid',
+  secret: process.env.SESSION_SECRET,
+  store: sessionStore,   // ← aquí el cambio clave
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+    maxAge: 1000 * 60 * 60 * 8
+  }
+}));
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
