@@ -188,6 +188,15 @@ app.post('/api/auth/registro', (req, res) => {
   );
 });
 
+app.get('/api/usuarios', requireAuth, (req, res) => {
+  db.query('SELECT id, usuario FROM usuarios ORDER BY usuario', (err, results) => {
+    if (err) {
+      console.error('Error al obtener usuarios:', err);
+      return res.status(500).json({ error: 'Error al obtener usuarios' });
+    }
+    res.json(results);
+  });
+});
 
 app.post('/api/auth/login', (req, res) => {
   console.log('➡️  Login recibido:', req.body.usuario);
@@ -274,21 +283,23 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.get('/api/solicitudes', requireAuth, (req, res) => {
   const sql = `
-    SELECT
-      s.id,
-      s.fecha,
-      s.creado_en,
-      s.empresa,
-      s.pendientes,
-      s.observaciones,
-      s.estatus,
-      r.id AS respuesta_id,
-      r.respuesta,
-      r.creado_en AS respuesta_creado_en
-    FROM solicitudes1 s
-    LEFT JOIN solicitud_respuestas r
-      ON r.solicitud_id = s.id
-    ORDER BY s.creado_en DESC, s.id DESC, r.creado_en ASC, r.id ASC
+  SELECT
+    s.id,
+    s.fecha,
+    s.creado_en,
+    s.empresa,
+    s.pendientes,
+    s.observaciones,
+    s.estatus,
+    s.responsable_id,
+    u.usuario AS responsable_nombre,
+    r.id AS respuesta_id,
+    r.respuesta,
+    r.creado_en AS respuesta_creado_en
+  FROM solicitudes1 s
+  LEFT JOIN usuarios u ON u.id = s.responsable_id
+  LEFT JOIN solicitud_respuestas r ON r.solicitud_id = s.id
+  ORDER BY s.creado_en DESC, s.id DESC, r.creado_en ASC, r.id ASC
   `;
 
   db.query(sql, (err, results) => {
@@ -313,6 +324,8 @@ app.get('/api/solicitudes', requireAuth, (req, res) => {
           pendientes: row.pendientes,
           observaciones: row.observaciones || '',
           estatus: row.estatus,
+          responsable_id: row.responsable_id,
+          responsable_nombre: row.responsable_nombre || 'Sin asignar',
           respuestas: []
         };
 
@@ -336,7 +349,7 @@ app.get('/api/solicitudes', requireAuth, (req, res) => {
 app.post('/api/solicitudes', requireAuth, (req, res) => {
   console.log('Body recibido:', req.body);
 
-  const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
+  const { fecha, empresa, pendientes, observaciones, estatus, responsable_id } = req.body;
 
   if (!fecha || !empresa || !pendientes || !estatus) {
     return res.status(400).json({
@@ -345,13 +358,13 @@ app.post('/api/solicitudes', requireAuth, (req, res) => {
   }
 
   const sql = `
-    INSERT INTO solicitudes1 (fecha, empresa, pendientes, observaciones, estatus)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO solicitudes1 (fecha, empresa, pendientes, observaciones, estatus, responsable_id)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
     sql,
-    [fecha, empresa, pendientes, observaciones || '', estatus],
+    [fecha, empresa, pendientes, observaciones || '', estatus, responsable_id || null],
     (err, result) => {
       if (err) {
         console.error('Error al guardar solicitud:', err);
@@ -371,7 +384,7 @@ app.post('/api/solicitudes', requireAuth, (req, res) => {
 
 app.put('/api/solicitudes/:id', requireAuth, (req, res) => {
   const { id } = req.params;
-  const { fecha, empresa, pendientes, observaciones, estatus } = req.body;
+  const { fecha, empresa, pendientes, observaciones, estatus, responsable_id } = req.body;
 
   if (!fecha || !empresa || !pendientes || !estatus) {
     return res.status(400).json({
@@ -381,13 +394,13 @@ app.put('/api/solicitudes/:id', requireAuth, (req, res) => {
 
   const sql = `
     UPDATE solicitudes1
-    SET fecha = ?, empresa = ?, pendientes = ?, observaciones = ?, estatus = ?
+    SET fecha = ?, empresa = ?, pendientes = ?, observaciones = ?, estatus = ?, responsable_id = ?
     WHERE id = ?
   `;
 
   db.query(
     sql,
-    [fecha, empresa, pendientes, observaciones || '', estatus, id],
+    [fecha, empresa, pendientes, observaciones || '', estatus, responsable_id || null, id],
     (err, result) => {
       if (err) {
         console.error('Error al actualizar solicitud:', err);
@@ -461,9 +474,10 @@ app.post('/api/solicitudes/:id/respuestas', requireAuth, (req, res) => {
 
 app.get('/api/exportar-excel', requireAuth, (req, res) => {
   const sql = `
-    SELECT id, fecha, creado_en, empresa, pendientes, observaciones, estatus
-    FROM solicitudes1
-    ORDER BY creado_en DESC, id DESC
+    SELECT s.id, s.fecha, s.creado_en, s.empresa, s.pendientes, s.observaciones, s.estatus, u.usuario AS responsable_nombre
+    FROM solicitudes1 s
+    LEFT JOIN usuarios u ON u.id = s.responsable_id
+    ORDER BY s.creado_en DESC, s.id DESC
   `;
 
   db.query(sql, async (err, results) => {
@@ -488,7 +502,8 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
         { header: 'Empresa', key: 'empresa', width: 28 },
         { header: 'Detalles del Trabajo', key: 'pendientes', width: 45 },
         { header: 'Observaciones', key: 'observaciones', width: 40 },
-        { header: 'Estatus', key: 'estatus', width: 18 }
+        { header: 'Estatus', key: 'estatus', width: 18 },
+        { header: 'Responsable', key: 'responsable_nombre', width: 20 }
       ];
 
       const headerRow = worksheet.getRow(1);

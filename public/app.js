@@ -10,6 +10,39 @@ const editForm = document.getElementById('editForm');
 const editModal = document.getElementById('editModal');
 const filterFecha = document.getElementById('filterFecha');
 
+async function loadUsers() {
+  try {
+    const res = await fetch('/api/usuarios', { credentials: 'include' });
+    const users = await res.json();
+    // Llenar select del formulario
+    const select = document.getElementById('responsable');
+    if (select) {
+      select.innerHTML = '<option value="">Selecciona un responsable</option>';
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.usuario;
+        select.appendChild(option);
+      });
+    }
+    // Llenar select del modal
+    const editSelect = document.getElementById('editResponsable');
+    if (editSelect) {
+      editSelect.innerHTML = '<option value="">Selecciona un responsable</option>';
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.usuario;
+        editSelect.appendChild(option);
+      });
+    }
+    // Guardar lista para usar en la tabla de estadísticas (opcional)
+    window.usersList = users;
+  } catch (error) {
+    console.error('Error al cargar usuarios:', error);
+  }
+}
+
 async function loadTasks() {
   try {
     const res = await fetch('/api/solicitudes');
@@ -23,6 +56,8 @@ async function loadTasks() {
       pendientes: item.pendientes,
       observaciones: item.observaciones || '',
       estatus: item.estatus,
+      responsable_id: item.responsable_id,
+      responsable_nombre: item.responsable_nombre || 'Sin asignar',
       respuestas: Array.isArray(item.respuestas) ? item.respuestas : []
     }));
 
@@ -85,7 +120,8 @@ taskForm.addEventListener('submit', async (e) => {
     empresa: document.getElementById('empresa').value,
     pendientes: document.getElementById('pendientes').value,
     observaciones: document.getElementById('observaciones').value,
-    estatus: document.getElementById('estatus').value
+    estatus: document.getElementById('estatus').value,
+    responsable_id: document.getElementById('responsable').value || null
   };
 
   try {
@@ -173,6 +209,10 @@ function renderTasks() {
           <div class="task-field">
             <div class="task-field-label">Detalles del Trabajo</div>
             <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+          </div>
+          <div class="task-field">
+            <div class="task-field-label">Responsable</div>
+            <div class="task-field-value">${escapeHtml(task.responsable_nombre)}</div>
           </div>
         </div>
 
@@ -274,15 +314,39 @@ async function addResponse(taskId) {
 }
 
 function updateStats() {
-  const total = tasks.length;
-  const pendientes = tasks.filter(t => t.estatus === 'Pendiente').length;
-  const enProceso = tasks.filter(t => t.estatus === 'En proceso').length;
-  const completados = tasks.filter(t => t.estatus === 'Completado').length;
+  const statsByUser = {};
+  tasks.forEach(task => {
+    const userId = task.responsable_id;
+    const userName = task.responsable_nombre;
+    if (!userId) return; // si no tiene asignado, lo omitimos (puedes decidir si mostrarlo como "Sin asignar")
+    if (!statsByUser[userId]) {
+      statsByUser[userId] = {
+        nombre: userName,
+        total: 0,
+        pendiente: 0,
+        enProceso: 0,
+        completado: 0
+      };
+    }
+    statsByUser[userId].total++;
+    if (task.estatus === 'Pendiente') statsByUser[userId].pendiente++;
+    else if (task.estatus === 'En proceso') statsByUser[userId].enProceso++;
+    else if (task.estatus === 'Completado') statsByUser[userId].completado++;
+  });
 
-  document.getElementById('totalCount').textContent = total;
-  document.getElementById('pendienteCount').textContent = pendientes;
-  document.getElementById('enProcesoCount').textContent = enProceso;
-  document.getElementById('completadoCount').textContent = completados;
+  const tbody = document.getElementById('statsTableBody');
+  if (tbody) {
+    tbody.innerHTML = '';
+    const sorted = Object.values(statsByUser).sort((a, b) => a.nombre.localeCompare(b.nombre));
+    sorted.forEach(stat => {
+      const row = tbody.insertRow();
+      row.insertCell(0).textContent = stat.nombre;
+      row.insertCell(1).textContent = stat.total;
+      row.insertCell(2).textContent = stat.pendiente;
+      row.insertCell(3).textContent = stat.enProceso;
+      row.insertCell(4).textContent = stat.completado;
+    });
+  }
 }
 
 function updateFilterOptions() {
@@ -312,7 +376,13 @@ function openEditModal(id) {
   document.getElementById('editObservaciones').value = task.observaciones;
   document.getElementById('editEstatus').value = task.estatus;
 
+  const editResponsableSelect = document.getElementById('editResponsable');
+  if (editResponsableSelect) {
+    editResponsableSelect.value = task.responsable_id || '';
+  }
   editModal.style.display = 'block';
+
+  
 }
 
 function closeModal() {
@@ -329,7 +399,8 @@ editForm.addEventListener('submit', async (e) => {
     empresa: document.getElementById('editEmpresa').value,
     pendientes: document.getElementById('editPendientes').value,
     observaciones: document.getElementById('editObservaciones').value,
-    estatus: document.getElementById('editEstatus').value
+    estatus: document.getElementById('editEstatus').value,
+    responsable_id: document.getElementById('editResponsable').value || null
   };
 
   try {
@@ -397,6 +468,7 @@ window.addEventListener('click', (e) => {
 
 document.getElementById('date').valueAsDate = new Date();
 loadTasks();
+loadUsers();
 
 window.openEditModal = openEditModal;
 window.closeModal = closeModal;

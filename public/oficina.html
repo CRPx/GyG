@@ -20,26 +20,20 @@
   <main class="page-layout">
     <section class="left-panel">
       <div class="left-panel-inner">
-        <div class="stats-container">
-          <div class="stat-card">
-            <div class="stat-number stat-total" id="totalCount">0</div>
-            <div class="stat-label">Total de Pendientes</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-number stat-pendiente" id="pendienteCount">0</div>
-            <div class="stat-label">Pendientes</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-number stat-en-proceso" id="enProcesoCount">0</div>
-            <div class="stat-label">En Proceso</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-number stat-completado" id="completadoCount">0</div>
-            <div class="stat-label">Completados</div>
-          </div>
+        <div id="stats-table-container">
+          <h3>Resumen por responsable</h3>
+          <table id="statsTable" class="stats-table">
+            <thead>
+              <tr>
+                <th>Responsable</th>
+                <th>Total</th>
+                <th>Pendiente</th>
+                <th>En proceso</th>
+                <th>Completado</th>
+              </tr>
+            </thead>
+            <tbody id="statsTableBody"></tbody>
+          </table>
         </div>
 
         <div class="filters-container">
@@ -106,7 +100,12 @@
                 </select>
               </div>
             </div>
-
+            <div class="form-group">
+              <label for="responsable">Responsable</label>
+              <select id="responsable" required>
+                <option value="">Selecciona un responsable</option>
+              </select>
+            </div>
             <div class="form-buttons">
               <button type="reset" class="btn-secondary">Limpiar</button>
               <button type="submit" class="btn-primary">Guardar Pendiente</button>
