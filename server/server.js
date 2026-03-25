@@ -599,6 +599,11 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
 });
 
 app.get('/', (req, res) => {
+  // Si el usuario ya tiene sesión activa, redirigir al panel
+  if (req.session && req.session.user) {
+    return res.redirect('/panel.html');
+  }
+  // Si no hay sesión, mostrar la página de inicio
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
