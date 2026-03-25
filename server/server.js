@@ -61,6 +61,19 @@ app.use(session({
   }
 }));
 
+app.get('/', (req, res) => {
+  console.log('=== Acceso a raíz ===');
+  console.log('Session ID:', req.session.id);
+  console.log('Session user:', req.session.user);
+  console.log('Cookie header:', req.headers.cookie);
+
+  if (req.session && req.session.user) {
+    console.log('➡️ Redirigiendo a panel.html');
+    return res.redirect('/panel.html');
+  }
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -598,18 +611,6 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
   });
 });
 
-app.get('/', (req, res) => {
-  console.log('=== Acceso a raíz ===');
-  console.log('Session ID:', req.session.id);
-  console.log('Session user:', req.session.user);
-  console.log('Cookie header:', req.headers.cookie);
-
-  if (req.session && req.session.user) {
-    console.log('➡️ Redirigiendo a panel.html');
-    return res.redirect('/panel.html');
-  }
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
 
 const PORT = process.env.PORT || 3000;
 
