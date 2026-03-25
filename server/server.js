@@ -10,6 +10,7 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 
 const app = express();
+app.set('trust proxy', 1);
 
 const CLAVE_REGISTRO = process.env.CLAVE_REGISTRO;
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -53,12 +54,13 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: false,
+    sameSite: 'none',
+    secure: true,
     maxAge: 1000 * 60 * 60 * 8,
     path: '/'
   }
 }));
+
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
