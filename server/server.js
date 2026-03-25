@@ -599,7 +599,11 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  console.log('🔍 Sesión en raíz:', req.session?.user);
+  console.log('=== Acceso a raíz ===');
+  console.log('Session ID:', req.session.id);
+  console.log('Session user:', req.session.user);
+  console.log('Cookie header:', req.headers.cookie);
+
   if (req.session && req.session.user) {
     console.log('➡️ Redirigiendo a panel.html');
     return res.redirect('/panel.html');
