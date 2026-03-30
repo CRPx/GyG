@@ -283,6 +283,9 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.get('/api/solicitudes', requireAuth, (req, res) => {
   console.log('Petición a /api/solicitudes recibida');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   const sql = `
   SELECT
       s.id,
