@@ -62,7 +62,10 @@ async function loadResponsablesFilter() {
 
 async function loadTasks() {
   try {
-    const res = await fetch('/api/solicitudes');
+    const res = await fetch('/api/solicitudes', {
+      credentials: 'include',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     const data = await res.json();
 
     tasks = data.map(item => ({
@@ -75,12 +78,13 @@ async function loadTasks() {
       estatus: item.estatus,
       responsable_id: item.responsable_id,
       responsable_nombre: item.responsable_nombre || 'Sin asignar',
+      creador_nombre: item.creador_nombre || 'Sistema',   // ← agregar
       respuestas: Array.isArray(item.respuestas) ? item.respuestas : []
     }));
 
     renderTasks();
     updateStats();
-    loadResponsablesFilter()
+    loadResponsablesFilter(); // ya lo tienes
   } catch (error) {
     console.error('Error al cargar solicitudes:', error);
     alert('No se pudieron cargar las solicitudes');
@@ -172,9 +176,9 @@ function renderTasks() {
 
   let filtered = tasks.filter(task => {
     const fechaMatch = !filterFechaValue || task.date === filterFechaValue;
-    const responsableMatch = !filterResponsableValue || task.responsable_id === filterResponsableValue;
+    const responsableMatch = !filterResponsableValue || task.responsable_id == filterResponsableValue;
     const estatusMatch = !filterEstatusValue || task.estatus === filterEstatusValue;
-    return fechaMatch && empresaMatch && estatusMatch;
+    return fechaMatch && responsableMatch && estatusMatch;   // ← cambiar empresaMatch por responsableMatch
   });
 
   filtered.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
