@@ -282,6 +282,7 @@ app.post('/api/auth/logout', (req, res) => {
 
 
 app.get('/api/solicitudes', requireAuth, (req, res) => {
+  console.log('Petición a /api/solicitudes recibida');
   const sql = `
   SELECT
       s.id,
@@ -310,11 +311,8 @@ app.get('/api/solicitudes', requireAuth, (req, res) => {
 
   db.query(sql, (err, results) => {
     if (err) {
-      console.error('Error al obtener solicitudes:', err);
-      return res.status(500).json({
-        error: 'Error al obtener solicitudes',
-        detalle: err.message
-      });
+      console.error('Error SQL detallado:', err);
+      return res.status(500).json({ error: err.message });
     }
 
     const grouped = [];
@@ -455,6 +453,7 @@ app.delete('/api/solicitudes/:id', requireAuth, (req, res) => {
 app.post('/api/solicitudes/:id/respuestas', requireAuth, (req, res) => {
   const { id } = req.params;
   const { respuesta } = req.body;
+  const usuario_id = req.session.user.id;
 
   if (!respuesta || !respuesta.trim()) {
     return res.status(400).json({
@@ -463,11 +462,11 @@ app.post('/api/solicitudes/:id/respuestas', requireAuth, (req, res) => {
   }
 
   const sql = `
-    INSERT INTO solicitud_respuestas (solicitud_id, respuesta)
-    VALUES (?, ?)
+    INSERT INTO solicitud_respuestas (solicitud_id, respuesta, usuario_id)
+    VALUES (?, ?, ?)
   `;
 
-  db.query(sql, [id, respuesta.trim()], (err, result) => {
+  db.query(sql, [id, respuesta.trim(), usuario_id], (err, result) => {
     if (err) {
       console.error('Error al guardar respuesta:', err);
       return res.status(500).json({
