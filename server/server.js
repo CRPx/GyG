@@ -284,22 +284,28 @@ app.post('/api/auth/logout', (req, res) => {
 app.get('/api/solicitudes', requireAuth, (req, res) => {
   const sql = `
   SELECT
-    s.id,
-    s.fecha,
-    s.creado_en,
-    s.empresa,
-    s.pendientes,
-    s.observaciones,
-    s.estatus,
-    s.responsable_id,
-    u.usuario AS responsable_nombre,
-    r.id AS respuesta_id,
-    r.respuesta,
-    r.creado_en AS respuesta_creado_en
-  FROM solicitudes1 s
-  LEFT JOIN usuarios u ON u.id = s.responsable_id
-  LEFT JOIN solicitud_respuestas r ON r.solicitud_id = s.id
-  ORDER BY s.creado_en DESC, s.id DESC, r.creado_en ASC, r.id ASC
+      s.id,
+      s.fecha,
+      s.creado_en,
+      s.empresa,
+      s.pendientes,
+      s.observaciones,
+      s.estatus,
+      s.responsable_id,
+      u_resp.usuario AS responsable_nombre,
+      s.creado_por_id,
+      u_creador.usuario AS creador_nombre,
+      r.id AS respuesta_id,
+      r.respuesta,
+      r.creado_en AS respuesta_creado_en,
+      r.usuario_id AS respuesta_usuario_id,
+      u_respuesta.usuario AS respuesta_usuario_nombre
+    FROM solicitudes1 s
+    LEFT JOIN usuarios u_resp ON u_resp.id = s.responsable_id
+    LEFT JOIN usuarios u_creador ON u_creador.id = s.creado_por_id
+    LEFT JOIN solicitud_respuestas r ON r.solicitud_id = s.id
+    LEFT JOIN usuarios u_respuesta ON u_respuesta.id = r.usuario_id
+    ORDER BY s.creado_en DESC, s.id DESC, r.creado_en ASC, r.id ASC
   `;
 
   db.query(sql, (err, results) => {
@@ -316,18 +322,20 @@ app.get('/api/solicitudes', requireAuth, (req, res) => {
 
     results.forEach(row => {
       if (!map.has(row.id)) {
-        const task = {
-          id: row.id,
-          fecha: row.fecha,
-          creado_en: row.creado_en,
-          empresa: row.empresa,
-          pendientes: row.pendientes,
-          observaciones: row.observaciones || '',
-          estatus: row.estatus,
-          responsable_id: row.responsable_id,
-          responsable_nombre: row.responsable_nombre || 'Sin asignar',
-          respuestas: []
-        };
+          const task = {
+            id: row.id,
+            fecha: row.fecha,
+            creado_en: row.creado_en,
+            empresa: row.empresa,
+            pendientes: row.pendientes,
+            observaciones: row.observaciones || '',
+            estatus: row.estatus,
+            responsable_id: row.responsable_id,
+            responsable_nombre: row.responsable_nombre || 'Sin asignar',
+            creado_por_id: row.creado_por_id,
+            creador_nombre: row.creador_nombre || 'Sistema',
+            respuestas: []
+          };
 
         map.set(row.id, task);
         grouped.push(task);
@@ -337,7 +345,9 @@ app.get('/api/solicitudes', requireAuth, (req, res) => {
         map.get(row.id).respuestas.push({
           id: row.respuesta_id,
           respuesta: row.respuesta,
-          creado_en: row.respuesta_creado_en
+          creado_en: row.respuesta_creado_en,
+          usuario_id: row.respuesta_usuario_id,
+          usuario_nombre: row.respuesta_usuario_nombre || 'Anónimo'
         });
       }
     });
@@ -350,6 +360,7 @@ app.post('/api/solicitudes', requireAuth, (req, res) => {
   console.log('Body recibido:', req.body);
 
   const { fecha, empresa, pendientes, observaciones, estatus, responsable_id } = req.body;
+  const creado_por_id = req.session.user.id; // usuario logueado
 
   if (!fecha || !empresa || !pendientes || !estatus) {
     return res.status(400).json({
@@ -358,13 +369,13 @@ app.post('/api/solicitudes', requireAuth, (req, res) => {
   }
 
   const sql = `
-    INSERT INTO solicitudes1 (fecha, empresa, pendientes, observaciones, estatus, responsable_id)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO solicitudes1 (fecha, empresa, pendientes, observaciones, estatus, responsable_id, creado_por_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
     sql,
-    [fecha, empresa, pendientes, observaciones || '', estatus, responsable_id || null],
+    [fecha, empresa, pendientes, observaciones || '', estatus, responsable_id || null, creado_por_id],
     (err, result) => {
       if (err) {
         console.error('Error al guardar solicitud:', err);
@@ -488,6 +499,8 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
         detalle: err.message
       });
     }
+  
+  
 
     try {
       const workbook = new ExcelJS.Workbook();
@@ -625,6 +638,23 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
     }
   });
 });
+
+  // Obtener lista de responsables que tienen al menos un pendiente asignado
+  app.get('/api/responsables', requireAuth, (req, res) => {
+    const sql = `
+      SELECT DISTINCT u.id, u.usuario
+      FROM usuarios u
+      INNER JOIN solicitudes1 s ON s.responsable_id = u.id
+      ORDER BY u.usuario
+    `;
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error('Error al obtener responsables:', err);
+        return res.status(500).json({ error: 'Error al obtener responsables' });
+      }
+      res.json(results);
+    });
+  });
 
 
 const PORT = process.env.PORT || 3000;

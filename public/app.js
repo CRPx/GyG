@@ -9,6 +9,7 @@ const filterEstatus = document.getElementById('filterEstatus');
 const editForm = document.getElementById('editForm');
 const editModal = document.getElementById('editModal');
 const filterFecha = document.getElementById('filterFecha');
+const filterResponsable = document.getElementById('filterResponsable');
 
 async function loadUsers() {
   try {
@@ -43,6 +44,22 @@ async function loadUsers() {
   }
 }
 
+async function loadResponsablesFilter() {
+  try {
+    const res = await fetch('/api/responsables', { credentials: 'include' });
+    const responsables = await res.json();
+    filterResponsable.innerHTML = '<option value="">Responsable</option>';
+    responsables.forEach(resp => {
+      const option = document.createElement('option');
+      option.value = resp.id;
+      option.textContent = resp.usuario;
+      filterResponsable.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error al cargar responsables:', error);
+  }
+}
+
 async function loadTasks() {
   try {
     const res = await fetch('/api/solicitudes');
@@ -63,7 +80,7 @@ async function loadTasks() {
 
     renderTasks();
     updateStats();
-    updateFilterOptions();
+    loadResponsablesFilter()
   } catch (error) {
     console.error('Error al cargar solicitudes:', error);
     alert('No se pudieron cargar las solicitudes');
@@ -150,12 +167,12 @@ taskForm.addEventListener('submit', async (e) => {
 
 function renderTasks() {
   const filterFechaValue = filterFecha?.value || '';
-  const filterEmpresaValue = filterEmpresa.value;
+  const filterResponsableValue = filterResponsable.value;
   const filterEstatusValue = filterEstatus.value;
 
   let filtered = tasks.filter(task => {
     const fechaMatch = !filterFechaValue || task.date === filterFechaValue;
-    const empresaMatch = !filterEmpresaValue || task.empresa === filterEmpresaValue;
+    const responsableMatch = !filterResponsableValue || task.responsable_id === filterResponsableValue;
     const estatusMatch = !filterEstatusValue || task.estatus === filterEstatusValue;
     return fechaMatch && empresaMatch && estatusMatch;
   });
@@ -189,7 +206,7 @@ function renderTasks() {
     const responsesHtml = task.respuestas && task.respuestas.length
       ? task.respuestas.map(item => `
           <div class="response-item">
-            <div class="response-meta">${getFormattedDateTime(item.creado_en)}</div>
+            <div class="response-meta">${getFormattedDateTime(item.creado_en)} por ${escapeHtml(item.usuario_nombre || 'Desconocido')}</div>
             <div class="response-text">${escapeHtml(item.respuesta)}</div>
           </div>
         `).join('')
@@ -201,6 +218,9 @@ function renderTasks() {
     card.innerHTML = `
       <div class="task-header ${headerClass}">
         <div class="task-company">${escapeHtml(task.empresa)}</div>
+        <div class="task-meta" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 4px;">
+          Creado por ${escapeHtml(task.creador_nombre)}
+        </div>
         <div class="task-date">${formattedCreatedAt}</div>
       </div>
 
@@ -349,22 +369,6 @@ function updateStats() {
   }
 }
 
-function updateFilterOptions() {
-  const empresas = [...new Set(tasks.map(t => t.empresa))].sort();
-  const currentValue = filterEmpresa.value;
-
-  filterEmpresa.innerHTML = '<option value="">Todas las Empresas</option>';
-
-  empresas.forEach(empresa => {
-    const option = document.createElement('option');
-    option.value = empresa;
-    option.textContent = empresa;
-    filterEmpresa.appendChild(option);
-  });
-
-  filterEmpresa.value = currentValue;
-}
-
 function openEditModal(id) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
@@ -444,7 +448,7 @@ function exportData() {
 
 function clearFilters() {
   if (filterFecha) filterFecha.value = '';
-  filterEmpresa.value = '';
+  if (filterResponsable) filterResponsable.value = '';
   filterEstatus.value = '';
   renderTasks();
 }
@@ -459,7 +463,7 @@ function escapeHtml(text) {
 }
 
 if (filterFecha) filterFecha.addEventListener('change', renderTasks);
-filterEmpresa.addEventListener('change', renderTasks);
+if (filterResponsable) filterResponsable.addEventListener('change', renderTasks);
 filterEstatus.addEventListener('change', renderTasks);
 
 window.addEventListener('click', (e) => {
@@ -468,6 +472,7 @@ window.addEventListener('click', (e) => {
 
 document.getElementById('date').valueAsDate = new Date();
 loadTasks();
+loadResponsablesFilter();
 loadUsers();
 
 window.openEditModal = openEditModal;

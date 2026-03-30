@@ -864,5 +864,11 @@ button {
     white-space: normal;
   }
 
+  .task-meta {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+
  
 }
