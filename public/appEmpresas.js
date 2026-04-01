@@ -218,7 +218,7 @@ taskForm.addEventListener('submit', async (e) => {
   };
 
   try {
-    const res = await fetch('/api/solicitudes', {
+    const res = await fetch('/api/solicitudes-empresas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newTask)
