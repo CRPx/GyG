@@ -132,6 +132,20 @@ body {
   padding: 24px;
 }
 
+.left-panel .task-company        { font-size: 17px; }
+.left-panel .task-meta           { font-size: 14px !important; }
+.left-panel .task-date           { font-size: 13.5px; }
+.left-panel .task-field-label    { font-size: 12.5px; }
+.left-panel .task-field-value    { font-size: 15.5px; }
+.left-panel .status-badge        { font-size: 14px; }
+.left-panel .filter-label        { font-size: 13px; }
+.left-panel .filter-select       { font-size: 14.5px; }
+.left-panel .response-meta       { font-size: 12.5px; }
+.left-panel .response-text       { font-size: 15px; }
+.left-panel #stats-table-container h3 { font-size: 13px; }
+.left-panel .stats-table thead th     { font-size: 13px; }
+.left-panel .stats-table td           { font-size: 15px; }
+
 .left-panel-inner {
   display: flex;
   flex-direction: column;
@@ -321,11 +335,26 @@ body {
   border-bottom: 1px solid var(--divider);
 }
 
-.task-header.header-pendiente,
+/* ANTES */
+/* .task-header.header-pendiente,
 .task-header.header-en-proceso,
 .task-header.header-completado {
   background: var(--surface) !important;
   color: var(--tx-primary) !important;
+} */
+
+/* DESPUÉS */
+.task-header.header-pendiente {
+  background: var(--surface) !important;
+  color: var(--s-pend-border) !important;  /* mismo rojo que el borde izquierdo */
+}
+.task-header.header-en-proceso {
+  background: var(--surface) !important;
+  color: var(--s-prog-border) !important;  /* mismo ámbar que el borde izquierdo */
+}
+.task-header.header-completado {
+  background: var(--surface) !important;
+  color: var(--s-done-border) !important;  /* mismo verde que el borde izquierdo */
 }
 
 .task-company {
