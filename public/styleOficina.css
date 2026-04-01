@@ -285,4 +285,29 @@ textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
   .mic-btn { width: 36px; height: 36px; top: 6px; right: 6px; }
   .response-empty { font-size: 14px; }
   .empty-state-text { font-size: 15px; }
+
+  .left-panel {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+  .left-panel-inner {
+    width: 100%;
+    max-width: 100%;
+  }
+  .filters-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  #stats-table-container {
+    width: 100%;
+    max-width: 100%;
+  }
+  .task-card {
+    width: 100%;
+    max-width: 100%;
+  }
+  .tasks-grid {
+    width: 100%;
+  }
 }
