@@ -721,17 +721,16 @@ RESPONSIVE
     display: flex;
     flex-direction: column;
   }
-
-  .right-panel {
+  body .right-panel {
     order: -1;
     position: static;
     max-height: none;
     min-height: auto;
     border-left: none;
     border-bottom: 1px solid var(--border);
+    padding: 20px 16px;
   }
-
-  .left-panel  { padding: 20px 16px; }
+  .left-panel { padding: 20px 16px; }
   .right-panel { padding: 20px 16px; }
 }
 
@@ -757,12 +756,13 @@ RESPONSIVE
   }
 
   /* Ocultar formulario en mobile — se activa con FAB */
-  .right-panel { display: none; }
-  .right-panel.mobile-open {
+  body .right-panel { display: none; }
+
+  body .right-panel.mobile-open {
     display: block;
     position: fixed;
     inset: 0;
-    top: 54px !important;
+    top: 54px;
     z-index: 150;
     overflow-y: auto;
     border-bottom: none;
