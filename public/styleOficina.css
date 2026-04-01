@@ -739,19 +739,21 @@ RESPONSIVE
 @media (max-width: 768px) {
 
   /* Header */
-  .page-header {
-  padding: 0 14px !important;
-  height: auto !important;
-  min-height: 54px !important;
+  body .page-header {
+    padding: 0 14px;
+    height: auto;
+    min-height: 54px;
   }
-  .header-inner {
-    flex-wrap: wrap !important;
-    gap: 10px !important;
+  body .header-inner {
+    flex-wrap: wrap;
+    gap: 10px;
   }
-  .page-header h1 { font-size: 15px !important; }
-  .header-logo {
-    width: 32px !important;
-    height: 32px !important;
+  body .page-header h1 {
+    font-size: 15px;
+  }
+  body .header-logo {
+    width: 32px;
+    height: 32px;
   }
 
   /* Ocultar formulario en mobile — se activa con FAB */
