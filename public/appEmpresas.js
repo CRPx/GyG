@@ -392,7 +392,7 @@ async function addResponse(taskId) {
   }
 
   try {
-    const res = await fetch(`/api/solicitudes/${taskId}/respuestas`, {
+    const res = await fetch(`/api/solicitudes-empresas/${taskId}/respuestas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ respuesta })
@@ -489,7 +489,7 @@ editForm.addEventListener('submit', async (e) => {
   };
 
   try {
-    const res = await fetch(`/api/solicitudes/${editingId}`, {
+    const res = await fetch(`/api/solicitudes-empresas/${editingId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -511,7 +511,7 @@ async function deleteTask(id) {
   if (!confirmacion) return;
 
   try {
-    const res = await fetch(`/api/solicitudes/${id}`, {
+    const res = await fetch(`/api/solicitudes-empresas/${id}`, {
       method: 'DELETE',
       credentials: 'include'
     });
