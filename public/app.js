@@ -415,6 +415,7 @@ editForm.addEventListener('submit', async (e) => {
     const res = await fetch(`/api/solicitudes/${editingId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(updatedTask)
     });
 
@@ -434,7 +435,8 @@ async function deleteTask(id) {
 
   try {
     const res = await fetch(`/api/solicitudes/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include'
     });
 
     if (!res.ok) throw new Error('Error al eliminar');
