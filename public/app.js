@@ -620,3 +620,31 @@ window.addResponse = addResponse;
   window.addEventListener('resize', handleResize);
   handleResize(); // estado inicial
 })();
+
+// ── Mobile FAB — abrir/cerrar panel de nuevo pendiente ──
+const fabNew       = document.getElementById('fabNew');
+const rightPanel   = document.querySelector('.right-panel');
+const mobileClose  = document.getElementById('mobileFormClose');
+
+if (fabNew && rightPanel) {
+  fabNew.addEventListener('click', () => {
+    rightPanel.classList.add('mobile-open');
+    // Scroll al tope del panel al abrirlo
+    rightPanel.scrollTop = 0;
+  });
+}
+
+if (mobileClose && rightPanel) {
+  mobileClose.addEventListener('click', () => {
+    rightPanel.classList.remove('mobile-open');
+  });
+}
+
+// Cerrar panel mobile al guardar el formulario exitosamente
+const originalSubmit = taskForm.onsubmit;
+taskForm.addEventListener('submit', async () => {
+  // Esperar un momento a que se procese el guardado
+  setTimeout(() => {
+    if (rightPanel) rightPanel.classList.remove('mobile-open');
+  }, 600);
+});
