@@ -739,7 +739,12 @@ RESPONSIVE
 @media (max-width: 768px) {
 
   /* Header */
-  .page-header { padding: 0 16px; height: 54px; }
+  .page-header {
+    padding: 0 14px;
+    height: auto;
+    min-height: 54px;
+  }
+  .header-inner { flex-wrap: wrap; gap: 10px; }
   .page-header h1 { font-size: 15px; }
   .header-logo { width: 32px; height: 32px; }
   .header-subtitle { display: none; }
@@ -829,19 +834,19 @@ RESPONSIVE
   .stats-table td       { padding: 9px 12px;  font-size: 13px; }
 
   /* Reducir font-sizes del left panel para mobile */
-  .left-panel .task-company        { font-size: 15px; }
-  .left-panel .task-meta           { font-size: 13px !important; }
-  .left-panel .task-date           { font-size: 12px; }
-  .left-panel .task-field-label    { font-size: 11px; }
-  .left-panel .task-field-value    { font-size: 14px; }
-  .left-panel .status-badge        { font-size: 13px; }
-  .left-panel .filter-label        { font-size: 12px; }
-  .left-panel .filter-select       { font-size: 15px; }
-  .left-panel .response-meta       { font-size: 11px; }
-  .left-panel .response-text       { font-size: 14px; }
-  .left-panel #stats-table-container h3 { font-size: 12px; }
-  .left-panel .stats-table thead th    { font-size: 11px; }
-  .left-panel .stats-table td          { font-size: 13px; }
+  .left-panel .task-company        { font-size: 17px; }
+  .left-panel .task-meta           { font-size: 14px !important; }
+  .left-panel .task-date           { font-size: 13px; }
+  .left-panel .task-field-label    { font-size: 12.5px; }
+  .left-panel .task-field-value    { font-size: 15.5px; }
+  .left-panel .status-badge        { font-size: 14px; }
+  .left-panel .filter-label        { font-size: 13px; }
+  .left-panel .filter-select       { font-size: 16px; }
+  .left-panel .response-meta       { font-size: 12.5px; }
+  .left-panel .response-text       { font-size: 15px; }
+  .left-panel #stats-table-container h3 { font-size: 13px; }
+  .left-panel .stats-table thead th    { font-size: 12px; }
+  .left-panel .stats-table td          { font-size: 14.5px; }
 
   /* Tarjetas */
   .task-header { grid-template-columns: 1fr; grid-template-rows: auto auto auto; gap: 4px; }
@@ -862,6 +867,15 @@ RESPONSIVE
 
   /* Voz — botón más grande en touch */
   .mic-btn { width: 36px; height: 36px; top: 6px; right: 6px; }
+
+  .form-title          { font-size: 17px; }
+  label                { font-size: 12px; }
+  input, select, textarea { font-size: 15px; }
+  .btn-primary,
+  .btn-secondary       { font-size: 15px; }
+  .btn-small           { font-size: 14px; }
+  .response-empty      { font-size: 14px; }
+  .empty-state-text    { font-size: 15px; }
 }
 
   /* ============================================================
