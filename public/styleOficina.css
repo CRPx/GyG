@@ -747,7 +747,6 @@ RESPONSIVE
   .header-inner { flex-wrap: wrap; gap: 10px; }
   .page-header h1 { font-size: 15px; }
   .header-logo { width: 32px; height: 32px; }
-  .header-subtitle { display: none; }
 
   /* Ocultar formulario en mobile — se activa con FAB */
   .right-panel { display: none; }
