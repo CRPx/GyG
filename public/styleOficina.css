@@ -740,13 +740,19 @@ RESPONSIVE
 
   /* Header */
   .page-header {
-    padding: 0 14px;
-    height: auto;
-    min-height: 54px;
+  padding: 0 14px !important;
+  height: auto !important;
+  min-height: 54px !important;
   }
-  .header-inner { flex-wrap: wrap; gap: 10px; }
-  .page-header h1 { font-size: 15px; }
-  .header-logo { width: 32px; height: 32px; }
+  .header-inner {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  .page-header h1 { font-size: 15px !important; }
+  .header-logo {
+    width: 32px !important;
+    height: 32px !important;
+  }
 
   /* Ocultar formulario en mobile — se activa con FAB */
   .right-panel { display: none; }
@@ -754,7 +760,7 @@ RESPONSIVE
     display: block;
     position: fixed;
     inset: 0;
-    top: 54px;
+    top: 54px !important;
     z-index: 150;
     overflow-y: auto;
     border-bottom: none;
