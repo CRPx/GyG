@@ -10,6 +10,78 @@ const editForm = document.getElementById('editForm');
 const editModal = document.getElementById('editModal');
 const filterFecha = document.getElementById('filterFecha');
 const filterResponsable = document.getElementById('filterResponsable');
+const MIC_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>`;
+
+function attachVoice(textarea, micBtn) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { micBtn.style.display = 'none'; return; }
+
+  const recognition = new SR();
+  recognition.lang = 'es-MX';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  let isRecording = false;
+  let baseText = '';
+
+  micBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isRecording) {
+      recognition.stop();
+    } else {
+      baseText = textarea.value;
+      recognition.start();
+    }
+  });
+
+  recognition.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add('mic-recording');
+    micBtn.title = 'Detener dictado';
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    micBtn.classList.remove('mic-recording');
+    micBtn.title = 'Dictar texto por voz';
+    textarea.value = textarea.value.trim();
+  };
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        baseText += event.results[i][0].transcript;
+      } else {
+        interim += event.results[i][0].transcript;
+      }
+    }
+    textarea.value = baseText + interim;
+  };
+
+  recognition.onerror = (e) => {
+    isRecording = false;
+    micBtn.classList.remove('mic-recording');
+    if (e.error !== 'aborted' && e.error !== 'no-speech') {
+      console.error('Error de voz:', e.error);
+    }
+  };
+}
+
+function initVoiceFields() {
+  const pairs = [
+    ['pendientes',       'mic-pendientes'],
+    ['observaciones',    'mic-observaciones'],
+    ['editPendientes',   'mic-editPendientes'],
+    ['editObservaciones','mic-editObservaciones'],
+  ];
+  pairs.forEach(([taId, btnId]) => {
+    const ta  = document.getElementById(taId);
+    const btn = document.getElementById(btnId);
+    if (ta && btn) attachVoice(ta, btn);
+  });
+}
 
 async function loadUsers() {
   try {
@@ -258,11 +330,10 @@ function renderTasks() {
           <div class="task-field">
             <div class="task-field-label">Agregar respuestas</div>
             <div class="response-form" onclick="event.stopPropagation()">
-              <textarea
-                id="responseInput-${task.id}"
-                class="response-textarea"
-                placeholder="Escribe una respuesta para este pendiente..."
-              ></textarea>
+              <div class="voice-field">
+                <textarea id="responseInput-${task.id}" class="response-textarea" placeholder="Escribe una respuesta para este pendiente..."></textarea>
+                <button type="button" class="mic-btn" id="mic-response-${task.id}" title="Dictar texto por voz">${MIC_SVG}</button>
+              </div>
               <button
                 class="btn-small btn-edit"
                 onclick="event.stopPropagation(); addResponse(${task.id})"
@@ -300,6 +371,12 @@ function renderTasks() {
 
     card.addEventListener('click', () => toggleTaskDetails(task.id));
     tasksGrid.appendChild(card);
+
+    if (isExpanded) {
+      const responseTa  = card.querySelector(`#responseInput-${task.id}`);
+      const responseMic = card.querySelector(`#mic-response-${task.id}`);
+      if (responseTa && responseMic) attachVoice(responseTa, responseMic);
+    }
   });
 }
 
@@ -480,6 +557,7 @@ document.getElementById('date').valueAsDate = new Date();
 loadTasks();
 loadResponsablesFilter();
 loadUsers();
+initVoiceFields();
 
 window.openEditModal = openEditModal;
 window.closeModal = closeModal;
