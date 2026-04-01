@@ -69,7 +69,7 @@ body {
    ============================================================ */
 .page-header {
   background: var(--navy-dark);
-  height: 68px;
+  min-height: 68px; 
   padding: 0 28px;
   display: flex;
   align-items: center;
