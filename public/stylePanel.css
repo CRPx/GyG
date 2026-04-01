@@ -62,7 +62,7 @@ body {
   width: 100%;
 }
 .header-inner {
-  display: flex;
+  display: block;
   align-items: center;
   gap: 14px;
   width: 100%;
