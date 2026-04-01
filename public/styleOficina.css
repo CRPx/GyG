@@ -32,7 +32,7 @@
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { overflow-x: hidden; }
+html { overflow-y: scroll; }
 html, body { min-height: 100%; }
 body {
   font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
@@ -40,8 +40,7 @@ body {
   background: var(--bg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  max-width: 100vw;
+  min-width: 0;
 }
 
 /* HEADER */
