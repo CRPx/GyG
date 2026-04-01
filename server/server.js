@@ -661,6 +661,156 @@ app.get('/api/exportar-excel', requireAuth, (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
+// ══════════════════════════════════════════
+// RUTAS EMPRESAS (tabla: solicitudes_empresas)
+// ══════════════════════════════════════════
+
+app.get('/api/solicitudes-empresas', requireAuth, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  const sql = `
+    SELECT
+      s.id, s.fecha, s.creado_en, s.empresa, s.pendientes, s.observaciones, s.estatus,
+      s.responsable_id, u_resp.usuario AS responsable_nombre,
+      s.creado_por_id, u_creador.usuario AS creador_nombre,
+      r.id AS respuesta_id, r.respuesta,
+      r.creado_en AS respuesta_creado_en, r.usuario_id AS respuesta_usuario_id,
+      u_respuesta.usuario AS respuesta_usuario_nombre
+    FROM solicitudes_empresas s
+    LEFT JOIN usuarios u_resp ON u_resp.id = s.responsable_id
+    LEFT JOIN usuarios u_creador ON u_creador.id = s.creado_por_id
+    LEFT JOIN solicitud_respuestas_empresas r ON r.solicitud_id = s.id
+    LEFT JOIN usuarios u_respuesta ON u_respuesta.id = r.usuario_id
+    ORDER BY s.creado_en DESC, s.id DESC, r.creado_en ASC, r.id ASC
+  `;
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const grouped = [];
+    const map = new Map();
+    results.forEach(row => {
+      if (!map.has(row.id)) {
+        const task = {
+          id: row.id, fecha: row.fecha, creado_en: row.creado_en,
+          empresa: row.empresa, pendientes: row.pendientes,
+          observaciones: row.observaciones || '', estatus: row.estatus,
+          responsable_id: row.responsable_id,
+          responsable_nombre: row.responsable_nombre || 'Sin asignar',
+          creado_por_id: row.creado_por_id,
+          creador_nombre: row.creador_nombre || 'Sistema',
+          respuestas: []
+        };
+        map.set(row.id, task);
+        grouped.push(task);
+      }
+      if (row.respuesta_id) {
+        map.get(row.id).respuestas.push({
+          id: row.respuesta_id, respuesta: row.respuesta,
+          creado_en: row.respuesta_creado_en, usuario_id: row.respuesta_usuario_id,
+          usuario_nombre: row.respuesta_usuario_nombre || 'Anónimo'
+        });
+      }
+    });
+    res.json(grouped);
+  });
+});
+
+app.post('/api/solicitudes-empresas', requireAuth, (req, res) => {
+  const { fecha, empresa, pendientes, observaciones, estatus, responsable_id } = req.body;
+  const creado_por_id = req.session.user.id;
+  if (!fecha || !empresa || !pendientes || !estatus)
+    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+  const sql = `INSERT INTO solicitudes_empresas (fecha, empresa, pendientes, observaciones, estatus, responsable_id, creado_por_id) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  db.query(sql, [fecha, empresa, pendientes, observaciones || '', estatus, responsable_id || null, creado_por_id], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Error al guardar', detalle: err.message });
+    res.json({ mensaje: 'Solicitud guardada', id: result.insertId });
+  });
+});
+
+app.put('/api/solicitudes-empresas/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { fecha, empresa, pendientes, observaciones, estatus, responsable_id } = req.body;
+  if (!fecha || !empresa || !pendientes || !estatus)
+    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+  const sql = `UPDATE solicitudes_empresas SET fecha=?, empresa=?, pendientes=?, observaciones=?, estatus=?, responsable_id=? WHERE id=?`;
+  db.query(sql, [fecha, empresa, pendientes, observaciones || '', estatus, responsable_id || null, id], (err) => {
+    if (err) return res.status(500).json({ error: 'Error al actualizar', detalle: err.message });
+    res.json({ mensaje: 'Solicitud actualizada' });
+  });
+});
+
+app.delete('/api/solicitudes-empresas/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM solicitudes_empresas WHERE id=?', [id], (err) => {
+    if (err) return res.status(500).json({ error: 'Error al eliminar', detalle: err.message });
+    res.json({ mensaje: 'Solicitud eliminada' });
+  });
+});
+
+app.post('/api/solicitudes-empresas/:id/respuestas', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { respuesta } = req.body;
+  const usuario_id = req.session.user.id;
+  if (!respuesta || !respuesta.trim())
+    return res.status(400).json({ error: 'La respuesta es obligatoria' });
+  const sql = `INSERT INTO solicitud_respuestas_empresas (solicitud_id, respuesta, usuario_id) VALUES (?, ?, ?)`;
+  db.query(sql, [id, respuesta.trim(), usuario_id], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Error al guardar respuesta', detalle: err.message });
+    res.json({ mensaje: 'Respuesta guardada', id: result.insertId });
+  });
+});
+
+app.get('/api/responsables-empresas', requireAuth, (req, res) => {
+  const sql = `SELECT DISTINCT u.id, u.usuario FROM usuarios u INNER JOIN solicitudes_empresas s ON s.responsable_id = u.id ORDER BY u.usuario`;
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener responsables' });
+    res.json(results);
+  });
+});
+
+app.get('/api/exportar-excel-empresas', requireAuth, (req, res) => {
+  const sql = `SELECT s.id, s.fecha, s.creado_en, s.empresa, s.pendientes, s.observaciones, s.estatus, u.usuario AS responsable_nombre FROM solicitudes_empresas s LEFT JOIN usuarios u ON u.id = s.responsable_id ORDER BY s.creado_en DESC`;
+  db.query(sql, async (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al exportar', detalle: err.message });
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Empresas');
+      worksheet.columns = [
+        { header: 'Fecha', key: 'fecha', width: 15 },
+        { header: 'Creado en', key: 'creado_en', width: 22 },
+        { header: 'Empresa', key: 'empresa', width: 28 },
+        { header: 'Detalles del Trabajo', key: 'pendientes', width: 45 },
+        { header: 'Observaciones', key: 'observaciones', width: 40 },
+        { header: 'Estatus', key: 'estatus', width: 18 },
+        { header: 'Responsable', key: 'responsable_nombre', width: 20 }
+      ];
+      const headerRow = worksheet.getRow(1);
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Calibri', size: 12 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2B6D' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+      results.forEach(item => {
+        worksheet.addRow({
+          fecha: formatFechaExcel(item.fecha),
+          creado_en: formatFechaHoraExcel(item.creado_en),
+          empresa: item.empresa || '',
+          pendientes: item.pendientes || '',
+          observaciones: item.observaciones || '',
+          estatus: item.estatus || '',
+          responsable_nombre: item.responsable_nombre || ''
+        });
+      });
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="empresas-${new Date().toISOString().split('T')[0]}.xlsx"`);
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      res.status(500).json({ error: 'Error al generar Excel', detalle: error.message });
+    }
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
 });
