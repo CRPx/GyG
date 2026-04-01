@@ -62,6 +62,145 @@ body {
   background: var(--bg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+
+  /* ── Tablet ── */
+  @media (max-width: 1100px) {
+    .page-layout {
+      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+    }
+    .right-panel {
+      order: -1;
+      position: static;
+      max-height: none;
+      min-height: auto;
+      border-left: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .left-panel  { padding: 20px 16px; }
+    .right-panel { padding: 20px 16px; }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+
+    .page-header {
+      padding: 0 14px;
+      height: auto;
+      min-height: 54px;
+    }
+    .header-inner { flex-wrap: wrap; gap: 10px; }
+    .page-header h1 { font-size: 15px; }
+    .header-logo { width: 32px; height: 32px; }
+    .header-subtitle { display: none; }
+
+    .right-panel { display: none; }
+    .right-panel.mobile-open {
+      display: block;
+      position: fixed;
+      inset: 0;
+      top: 54px;
+      z-index: 150;
+      overflow-y: auto;
+      border-bottom: none;
+      box-shadow: var(--sh-modal);
+      animation: slideUp 0.28s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .fab-new {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: fixed;
+      bottom: 20px;
+      right: 16px;
+      z-index: 140;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      box-shadow: 0 6px 20px rgba(26,43,109,.35);
+      cursor: pointer;
+      transition: var(--ease);
+    }
+    .fab-new:hover  { background: var(--navy-mid); transform: translateY(-2px); }
+    .fab-new:active { transform: scale(0.97); }
+
+    .mobile-form-close {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--navy-light);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+    }
+
+    .form-grid { grid-template-columns: 1fr; }
+    .form-title { font-size: 17px; }
+    .form-buttons { flex-direction: column; }
+    .form-buttons button { width: 100%; min-height: 44px; }
+
+    label { font-size: 12px; }
+    input, select, textarea { font-size: 15px; }
+    .btn-primary, .btn-secondary { font-size: 15px; min-height: 44px; }
+    .btn-small { font-size: 14px; min-height: 40px; padding: 9px 14px; }
+
+    .filters-container { flex-direction: column; align-items: stretch; padding: 10px 12px; }
+    .filters-row,
+    .filters-row-selects,
+    .filters-row-actions { flex-direction: column; margin-left: 0; width: 100%; }
+    .filter-select,
+    #filterFecha.filter-select,
+    #filterResponsable,
+    #filterEstatus { width: 100%; min-width: 0; max-width: none; height: 44px; font-size: 15px; }
+    .filters-container .btn-secondary { width: 100%; min-height: 44px; }
+
+    #stats-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .stats-table thead th { padding: 8px 12px; font-size: 12px; }
+    .stats-table td       { padding: 9px 12px;  font-size: 14.5px; }
+
+    .left-panel .task-company        { font-size: 17px; }
+    .left-panel .task-meta           { font-size: 14px !important; }
+    .left-panel .task-date           { font-size: 13px; }
+    .left-panel .task-field-label    { font-size: 12.5px; }
+    .left-panel .task-field-value    { font-size: 15.5px; }
+    .left-panel .status-badge        { font-size: 14px; }
+    .left-panel .filter-label        { font-size: 13px; }
+    .left-panel .filter-select       { font-size: 16px; }
+    .left-panel .response-meta       { font-size: 12.5px; }
+    .left-panel .response-text       { font-size: 15px; }
+    .left-panel #stats-table-container h3 { font-size: 13px; }
+    .left-panel .stats-table thead th    { font-size: 12px; }
+    .left-panel .stats-table td          { font-size: 14.5px; }
+
+    .task-header { grid-template-columns: 1fr; grid-template-rows: auto auto auto; gap: 4px; }
+    .task-date   { grid-column: 1; grid-row: 3; justify-self: start; margin-top: 4px; }
+    .task-meta   { grid-row: 2; }
+    .task-preview { grid-template-columns: 1fr; }
+    .task-actions { flex-direction: column; }
+    .task-actions button { width: 100%; min-height: 44px; }
+
+    .modal { padding: 12px; }
+    .modal-content { padding: 18px 16px; max-height: 95vh; }
+    .mic-btn { width: 36px; height: 36px; top: 6px; right: 6px; }
+    .response-empty { font-size: 14px; }
+    .empty-state-text { font-size: 15px; }
+  }
+
 }
 
 /* ============================================================
@@ -709,181 +848,6 @@ textarea {
 .empty-state-icon { font-size: 34px; margin-bottom: 12px; }
 .empty-state-text { font-size: 14px; color: var(--tx-muted); font-weight: 500; }
 .no-tasks { grid-column: 1 / -1; }
-
-/* ============================================================
-RESPONSIVE
-============================================================ */
-
-/* ── Tablet / pantalla mediana ── */
-@media (max-width: 1100px) {
-  .page-layout {
-    grid-template-columns: 1fr;
-    display: flex;
-    flex-direction: column;
-  }
-  body .right-panel {
-    order: -1;
-    position: static;
-    max-height: none;
-    min-height: auto;
-    border-left: none;
-    border-bottom: 1px solid var(--border);
-    padding: 20px 16px;
-  }
-  .left-panel { padding: 20px 16px; }
-  .right-panel { padding: 20px 16px; }
-}
-
-/* ── Mobile ── */
-@media (max-width: 768px) {
-
-  /* Header */
-  body .page-header {
-    padding: 0 14px;
-    height: auto;
-    min-height: 54px;
-  }
-  body .header-inner {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  body .page-header h1 {
-    font-size: 15px;
-  }
-  body .header-logo {
-    width: 32px;
-    height: 32px;
-  }
-
-  /* Ocultar formulario en mobile — se activa con FAB */
-  body .right-panel { display: none; }
-
-  body .right-panel.mobile-open {
-    display: block;
-    position: fixed;
-    inset: 0;
-    top: 54px;
-    z-index: 150;
-    overflow-y: auto;
-    border-bottom: none;
-    box-shadow: var(--sh-modal);
-    animation: slideUp 0.28s ease;
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-
-  /* FAB — botón flotante "Nuevo Pendiente" */
-  .fab-new {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    bottom: 20px;
-    right: 16px;
-    z-index: 140;
-    background: var(--navy);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 13px 20px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: inherit;
-    box-shadow: 0 6px 20px rgba(26,43,109,.35);
-    cursor: pointer;
-    transition: var(--ease);
-  }
-  .fab-new:hover  { background: var(--navy-mid); transform: translateY(-2px); }
-  .fab-new:active { transform: scale(0.97); }
-
-  /* Banner "cerrar formulario" dentro del panel en mobile */
-  .mobile-form-close {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--navy-light);
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--navy);
-    cursor: pointer;
-  }
-
-  /* Formulario */
-  .form-grid { grid-template-columns: 1fr; }
-  .form-buttons { flex-direction: column; }
-  .form-buttons button { width: 100%; min-height: 44px; }
-
-  /* Filtros */
-  .filters-container { flex-direction: column; align-items: stretch; padding: 10px 12px; }
-  .filters-row,
-  .filters-row-selects,
-  .filters-row-actions { flex-direction: column; margin-left: 0; width: 100%; }
-  .filter-select,
-  #filterFecha.filter-select,
-  #filterResponsable,
-  #filterEstatus {
-    width: 100%;
-    min-width: 0;      /* ← elimina el min-width que desborda */
-    max-width: none;
-    height: 44px;
-    font-size: 15px;
-  }
-  .filters-container .btn-secondary { width: 100%; min-height: 44px; }
-
-  /* Tabla de resumen — scroll horizontal */
-  #stats-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .stats-table thead th { padding: 8px 12px; font-size: 11px; }
-  .stats-table td       { padding: 9px 12px;  font-size: 13px; }
-
-  /* Reducir font-sizes del left panel para mobile */
-  .left-panel .task-company        { font-size: 17px; }
-  .left-panel .task-meta           { font-size: 14px !important; }
-  .left-panel .task-date           { font-size: 13px; }
-  .left-panel .task-field-label    { font-size: 12.5px; }
-  .left-panel .task-field-value    { font-size: 15.5px; }
-  .left-panel .status-badge        { font-size: 14px; }
-  .left-panel .filter-label        { font-size: 13px; }
-  .left-panel .filter-select       { font-size: 16px; }
-  .left-panel .response-meta       { font-size: 12.5px; }
-  .left-panel .response-text       { font-size: 15px; }
-  .left-panel #stats-table-container h3 { font-size: 13px; }
-  .left-panel .stats-table thead th    { font-size: 12px; }
-  .left-panel .stats-table td          { font-size: 14.5px; }
-
-  /* Tarjetas */
-  .task-header { grid-template-columns: 1fr; grid-template-rows: auto auto auto; gap: 4px; }
-  .task-date   { grid-column: 1; grid-row: 3; justify-self: start; margin-top: 4px; }
-  .task-meta   { grid-row: 2; }
-  .task-preview { grid-template-columns: 1fr; }
-  .task-actions { flex-direction: column; }
-  .task-actions button { width: 100%; min-height: 44px; }
-
-  /* Botones touch targets */
-  .btn-primary,
-  .btn-secondary { min-height: 44px; }
-  .btn-small     { min-height: 40px; padding: 9px 14px; }
-
-  /* Modal */
-  .modal { padding: 12px; }
-  .modal-content { padding: 18px 16px; max-height: 95vh; }
-
-  /* Voz — botón más grande en touch */
-  .mic-btn { width: 36px; height: 36px; top: 6px; right: 6px; }
-
-  .form-title          { font-size: 17px; }
-  label                { font-size: 12px; }
-  input, select, textarea { font-size: 15px; }
-  .btn-primary,
-  .btn-secondary       { font-size: 15px; }
-  .btn-small           { font-size: 14px; }
-  .response-empty      { font-size: 14px; }
-  .empty-state-text    { font-size: 15px; }
-}
 
   /* ============================================================
 VOZ / DICTADO
