@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pendientes GyG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styleOficina.css">
 </head>
-<body>
+<body data-page="oficina">
+
   <header class="page-header">
     <div class="header-inner">
       <img src="logo.png" alt="Logo GyG" class="header-logo">
@@ -18,8 +22,12 @@
   </header>
 
   <main class="page-layout">
+
+    <!-- ── Left panel: stats + filters + task list ── -->
     <section class="left-panel">
       <div class="left-panel-inner">
+
+        <!-- Resumen por responsable -->
         <div id="stats-table-container">
           <h3>Resumen</h3>
           <table id="statsTable" class="stats-table">
@@ -36,8 +44,9 @@
           </table>
         </div>
 
+        <!-- Filtros -->
         <div class="filters-container">
-          <span class="filter-label">Filtrar por:</span>
+          <span class="filter-label">Filtrar por</span>
 
           <div class="filters-row filters-row-selects">
             <input type="date" id="filterFecha" class="filter-select">
@@ -55,67 +64,74 @@
           </div>
 
           <div class="filters-row filters-row-actions">
-            <button class="btn-secondary" onclick="clearFilters()">Limpiar filtros</button>
-            <button class="btn-secondary" onclick="exportData()">Exportar a Excel</button>
+            <button class="btn-secondary" onclick="clearFilters()">Limpiar</button>
+            <button class="btn-secondary" onclick="exportData()">Exportar Excel</button>
           </div>
         </div>
 
+        <!-- Tarjetas de pendientes -->
         <div class="tasks-grid" id="tasksGrid"></div>
+
       </div>
     </section>
 
+    <!-- ── Right panel: form (sticky sidebar) ── -->
     <aside class="right-panel">
-      <div class="right-panel-inner">
-        <div class="form-container">
-          <div class="form-title">Nuevo Pendiente</div>
+      <div class="form-container">
+        <div class="form-title">Nuevo Pendiente</div>
 
-          <form id="taskForm">
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="date">Fecha</label>
-                <input type="date" id="date" required>
-              </div>
+        <form id="taskForm">
+          <div class="form-grid">
 
-              <div class="form-group">
-                <label for="empresa">Título</label>
-                <input type="text" id="empresa" placeholder="Ej. Visita a empresa" required>
-              </div>
-
-              <div class="form-group form-group-full">
-                <label for="pendientes">Detalles del pendiente</label>
-                <textarea id="pendientes" placeholder="Describe los pendientes o detalles del trabajo a realizar..." required></textarea>
-              </div>
-
-              <div class="form-group form-group-full">
-                <label for="observaciones">Observaciones</label>
-                <textarea id="observaciones" placeholder="Notas adicionales, restricciones, horarios, etc."></textarea>
-              </div>
-
-              <div class="form-group">
-                <label for="estatus">Estatus</label>
-                <select id="estatus" required>
-                  <option value="Pendiente">Pendiente</option>
-                  <option value="En proceso">En proceso</option>
-                  <option value="Completado">Completado</option>
-                </select>
-              </div>
+            <div class="form-group">
+              <label for="date">Fecha</label>
+              <input type="date" id="date" required>
             </div>
+
+            <div class="form-group">
+              <label for="empresa">Título</label>
+              <input type="text" id="empresa" placeholder="Ej. Visita a empresa" required>
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="pendientes">Detalles del pendiente</label>
+              <textarea id="pendientes" placeholder="Describe los pendientes o detalles del trabajo a realizar..." required></textarea>
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="observaciones">Observaciones</label>
+              <textarea id="observaciones" placeholder="Notas adicionales, restricciones, horarios, etc."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="estatus">Estatus</label>
+              <select id="estatus" required>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Completado">Completado</option>
+              </select>
+            </div>
+
             <div class="form-group">
               <label for="responsable">Responsable</label>
               <select id="responsable" required>
                 <option value="">Selecciona un responsable</option>
               </select>
             </div>
-            <div class="form-buttons">
-              <button type="reset" class="btn-secondary">Limpiar</button>
-              <button type="submit" class="btn-primary">Guardar Pendiente</button>
-            </div>
-          </form>
-        </div>
+
+          </div>
+
+          <div class="form-buttons">
+            <button type="reset" class="btn-secondary">Limpiar</button>
+            <button type="submit" class="btn-primary">Guardar Pendiente</button>
+          </div>
+        </form>
       </div>
     </aside>
+
   </main>
 
+  <!-- ── Edit Modal ── -->
   <div id="editModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
@@ -123,6 +139,7 @@
 
       <form id="editForm">
         <div class="form-grid">
+
           <div class="form-group">
             <label for="editDate">Fecha</label>
             <input type="date" id="editDate" required>
@@ -158,6 +175,7 @@
               <option value="">Selecciona un responsable</option>
             </select>
           </div>
+
         </div>
 
         <div class="form-buttons">
