@@ -565,3 +565,58 @@ window.deleteTask = deleteTask;
 window.exportData = exportData;
 window.clearFilters = clearFilters;
 window.addResponse = addResponse;
+
+// ── Mobile FAB toggle ──────────────────────────────────────
+(function () {
+  const fab       = document.getElementById('fabNew');
+  const panel     = document.getElementById('rightPanel');
+  const closeBtn  = document.getElementById('mobileFormClose');
+  const isMobile  = () => window.innerWidth <= 768;
+
+  function openPanel() {
+    panel.classList.add('mobile-open');
+    panel.style.display = '';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePanel() {
+    panel.classList.remove('mobile-open');
+    if (isMobile()) panel.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  if (fab) {
+    fab.addEventListener('click', openPanel);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closePanel);
+  }
+
+  // Mostrar/ocultar FAB y panel según tamaño de ventana
+  function handleResize() {
+    if (!fab || !panel) return;
+    if (isMobile()) {
+      fab.style.display = 'flex';
+      if (!panel.classList.contains('mobile-open')) {
+        panel.style.display = 'none';
+      }
+    } else {
+      fab.style.display = 'none';
+      panel.style.display = '';
+      panel.classList.remove('mobile-open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Cerrar panel al guardar con éxito (cuando el form hace reset)
+  const form = document.getElementById('taskForm');
+  if (form) {
+    form.addEventListener('reset', () => {
+      if (isMobile()) closePanel();
+    });
+  }
+
+  window.addEventListener('resize', handleResize);
+  handleResize(); // estado inicial
+})();
