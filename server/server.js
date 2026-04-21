@@ -8,6 +8,8 @@ const db = require('./db');
 const crypto = require('crypto');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
+const { GoogleGenAI } = require('@google/genai');
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const app = express();
 app.set('trust proxy', 1);
@@ -52,12 +54,18 @@ app.use(session({
   store: sessionStore,   // ← aquí el cambio clave
   resave: false,
   saveUninitialized: false,
+  // cookie: {
+  //   httpOnly: true,
+  //   sameSite: 'none',
+  //   secure: true,
+  //   maxAge: 1000 * 60 * 60 * 8,
+  //   path: '/'
+  // }
   cookie: {
     httpOnly: true,
-    sameSite: 'none',
-    secure: true,
-    maxAge: 1000 * 60 * 60 * 8,
-    path: '/'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 1000 * 60 * 60 * 8
   }
 }));
 
@@ -726,6 +734,68 @@ app.post('/api/solicitudes-empresas', requireAuth, (req, res) => {
     res.json({ mensaje: 'Solicitud guardada', id: result.insertId });
   });
 });
+
+app.post('/api/ia/crear-pendiente', requireAuth, async (req, res) => {
+    try {
+      const { texto } = req.body;
+
+      if (!texto || !texto.trim()) {
+        return res.status(400).json({ error: 'El texto es obligatorio' });
+      }
+
+      const hoy = new Date().toISOString().split('T')[0];
+
+      const prompt = 'Eres un asistente que extrae información de tareas pendientes. '
+        + 'A partir del texto del usuario, devuelve SOLO un JSON con estos campos: '
+        + 'fecha (formato YYYY-MM-DD, si no se menciona usa ' + hoy + '), '
+        + 'empresa (nombre de la empresa), '
+        + 'pendientes (descripción del trabajo a realizar), '
+        + 'observaciones (notas adicionales, puede ser cadena vacía), '
+        + 'estatus (uno de: Pendiente, En proceso, Completado). '
+        + 'Responde SOLO con el JSON, sin explicaciones ni bloques de código.\n\n'
+        + 'Texto: ' + texto;
+
+      const result = await genai.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: prompt
+      });
+
+      let raw = result.text.trim();
+      raw = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/, '').trim();
+      const json = JSON.parse(raw);
+      res.json(json);
+
+    } catch (err) {
+      console.error('Error IA:', err);
+      res.status(500).json({ error: 'Error al procesar con IA', detalle: err.message });
+    }
+  });
+
+  app.post('/api/ia/crear-pendiente-empresas', requireAuth, async (req, res) => {
+    try {
+      const { texto } = req.body;
+      if (!texto || !texto.trim()) return res.status(400).json({ error: 'El texto es obligatorio' });
+
+      const hoy = new Date().toISOString().split('T')[0];
+      const prompt = 'Eres un asistente que extrae información de tareas pendientes. '
+        + 'A partir del texto del usuario, devuelve SOLO un JSON con estos campos: '
+        + 'fecha (formato YYYY-MM-DD, si no se menciona usa ' + hoy + '), '
+        + 'empresa (nombre de la empresa), '
+        + 'pendientes (descripción del trabajo a realizar), '
+        + 'observaciones (notas adicionales, puede ser cadena vacía), '
+        + 'estatus (uno de: Pendiente, En proceso, Completado). '
+        + 'Responde SOLO con el JSON, sin explicaciones ni bloques de código.\n\nTexto: ' + texto;
+
+      const result = await genai.models.generateContent({ model: 'gemini-2.5-flash-lite', contents: prompt });
+            let raw = result.text.trim();
+      raw = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/, '').trim();
+      const json = JSON.parse(raw);
+      res.json(json);
+    } catch (err) {
+      console.error('Error IA empresas:', err);
+      res.status(500).json({ error: 'Error al procesar con IA', detalle: err.message });
+    }
+  });
 
 app.put('/api/solicitudes-empresas/:id', requireAuth, (req, res) => {
   const { id } = req.params;

@@ -69,12 +69,14 @@ function attachVoice(textarea, micBtn) {
   };
 }
 
+
 function initVoiceFields() {
   const pairs = [
     ['pendientes',       'mic-pendientes'],
     ['observaciones',    'mic-observaciones'],
     ['editPendientes',   'mic-editPendientes'],
     ['editObservaciones','mic-editObservaciones'],
+    ['iaTextoEmpresas',    'mic-iaTextoEmpresas'],
   ];
   pairs.forEach(([taId, btnId]) => {
     const ta  = document.getElementById(taId);
@@ -553,6 +555,50 @@ window.addEventListener('click', (e) => {
   if (e.target === editModal) closeModal();
 });
 
+async function iaLlenarFormulario(tipo) {
+  const textoEl = document.getElementById('iaTextoEmpresas');
+  const statusEl = document.getElementById('iaStatus');
+  const btn = document.querySelector('[onclick*="iaLlenarFormulario"]');
+
+  if (!textoEl) return;
+  const texto = textoEl.value.trim();
+  if (!texto) {
+    alert('Escribe o dicta algo primero.');
+    return;
+  }
+
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = '⏳ Procesando...'; }
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/ia/crear-pendiente-empresas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ texto })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error IA');
+
+    if (data.fecha)        document.getElementById('date').value         = data.fecha;
+    if (data.empresa)      document.getElementById('empresa').value      = data.empresa;
+    if (data.pendientes)   document.getElementById('pendientes').value   = data.pendientes;
+    if (data.observaciones !== undefined)
+                           document.getElementById('observaciones').value = data.observaciones;
+    if (data.estatus)      document.getElementById('estatus').value      = data.estatus;
+
+    textoEl.value = '';
+    if (statusEl) { statusEl.textContent = '✅ Formulario llenado'; setTimeout(() => { statusEl.style.display = 'none'; }, 3000); }
+
+  } catch (err) {
+    console.error('Error IA empresas:', err);
+    if (statusEl) { statusEl.textContent = '❌ Error: ' + err.message; }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 document.getElementById('date').valueAsDate = new Date();
 loadTasks();
 loadResponsablesFilter();
@@ -565,6 +611,7 @@ window.deleteTask = deleteTask;
 window.exportData = exportData;
 window.clearFilters = clearFilters;
 window.addResponse = addResponse;
+window.iaLlenarFormulario = iaLlenarFormulario;
 
 // ── Mobile FAB toggle ──────────────────────────────────────
 (function () {

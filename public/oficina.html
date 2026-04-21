@@ -85,6 +85,26 @@
       <div class="form-container">
         <div class="form-title">Nuevo Pendiente</div>
 
+        <!-- Bloque IA -->
+        <div style="background:#f0f4ff;border:1px solid #c7d4f0;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+          <label style="font-weight:600;font-size:0.9rem;display:block;margin-bottom:8px;">✨ Crear con IA</label>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <div class="voice-field" style="flex:1;">
+              <textarea id="iaTexto" rows="2" placeholder='Ej: "Visita a empresa GYG el lunes, entregar cotización"'></textarea>
+              <button type="button" class="mic-btn" id="mic-iaTexto" title="Dictar texto por voz">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
+              </button>
+            </div>
+            <button type="button" id="iaBtnOficina" onclick="iaLlenarFormulario('oficina')"
+              style="background:#4f6ef7;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:0.85rem;">
+              ✨ Generar
+            </button>
+          </div>
+          <p id="iaStatus" style="font-size:0.8rem;color:#666;margin-top:6px;display:none;"></p>
+        </div>
+
         <form id="taskForm">
           <div class="form-grid">
 

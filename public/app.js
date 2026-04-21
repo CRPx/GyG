@@ -71,16 +71,20 @@ function attachVoice(textarea, micBtn) {
 
 function initVoiceFields() {
   const pairs = [
-    ['pendientes',       'mic-pendientes'],
-    ['observaciones',    'mic-observaciones'],
-    ['editPendientes',   'mic-editPendientes'],
-    ['editObservaciones','mic-editObservaciones'],
+    ['pendientes',        'mic-pendientes'],
+    ['observaciones',     'mic-observaciones'],
+    ['editPendientes',    'mic-editPendientes'],
+    ['editObservaciones', 'mic-editObservaciones'],
+    ['iaTexto',           'mic-iaTexto'],           // ← agrega esta línea
   ];
   pairs.forEach(([taId, btnId]) => {
-    const ta  = document.getElementById(taId);
+    const ta = document.getElementById(taId);
     const btn = document.getElementById(btnId);
     if (ta && btn) attachVoice(ta, btn);
   });
+  // Asignar ícono al botón de mic de IA
+  const micIa = document.getElementById('mic-iaTexto');
+  if (micIa) micIa.innerHTML = MIC_SVG;
 }
 
 async function loadUsers() {
@@ -648,3 +652,60 @@ taskForm.addEventListener('submit', async () => {
     if (rightPanel) rightPanel.classList.remove('mobile-open');
   }, 600);
 });
+
+async function iaLlenarFormulario(tipo) {
+  const texto = document.getElementById('iaTexto').value.trim();
+  const status = document.getElementById('iaStatus');
+  const btn = document.getElementById('iaBtnOficina');
+
+  if (!texto) {
+    alert('Escribe una descripción primero');
+    return;
+  }
+
+  status.style.display = 'block';
+  status.textContent = '⏳ Procesando con IA...';
+  btn.disabled = true;
+
+  try {
+    const endpoint = tipo === 'empresas'
+      ? '/api/ia/crear-pendiente-empresas'
+      : '/api/ia/crear-pendiente';
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ texto })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      status.textContent = '❌ Error: ' + (data.error || 'No se pudo procesar');
+      return;
+    }
+
+    // Llenar el formulario con los datos de la IA
+    if (data.fecha)        document.getElementById('date').value         = data.fecha;
+    if (data.empresa)      document.getElementById('empresa').value      = data.empresa;
+    if (data.pendientes)   document.getElementById('pendientes').value   = data.pendientes;
+    if (data.observaciones)document.getElementById('observaciones').value= data.observaciones;
+    if (data.estatus) {
+      const select = document.getElementById('estatus');
+      for (let opt of select.options) {
+        if (opt.value === data.estatus) { select.value = data.estatus; break; }
+      }
+    }
+
+    document.getElementById('iaTexto').value = '';
+    status.textContent = '✅ Formulario llenado. Revisa y guarda.';
+    setTimeout(() => { status.style.display = 'none'; }, 4000);
+
+  } catch (err) {
+    status.textContent = '❌ Error de conexión';
+    console.error('Error IA:', err);
+  } finally {
+    btn.disabled = false;
+  }
+}
