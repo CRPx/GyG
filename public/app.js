@@ -686,7 +686,7 @@ async function iaLlenarFormulario(tipo) {
       return;
     }
 
-    // Llenar el formulario con los datos de la IA
+    // Llenar campos básicos
     if (data.fecha)        document.getElementById('date').value         = data.fecha;
     if (data.empresa)      document.getElementById('empresa').value      = data.empresa;
     if (data.pendientes)   document.getElementById('pendientes').value   = data.pendientes;
@@ -695,6 +695,36 @@ async function iaLlenarFormulario(tipo) {
       const select = document.getElementById('estatus');
       for (let opt of select.options) {
         if (opt.value === data.estatus) { select.value = data.estatus; break; }
+      }
+    }
+
+    // 🆕 Asignar responsable si se reconoció un nombre
+    if (data.responsable_nombre) {
+      const responsableSelect = document.getElementById('responsable');
+      const nombreBuscado = data.responsable_nombre.trim().toLowerCase();
+      let encontrado = false;
+
+      for (let opt of responsableSelect.options) {
+        if (opt.text.trim().toLowerCase() === nombreBuscado) {
+          responsableSelect.value = opt.value;
+          encontrado = true;
+          break;
+        }
+      }
+
+      // Búsqueda parcial (contiene) como fallback
+      if (!encontrado) {
+        for (let opt of responsableSelect.options) {
+          if (opt.text.trim().toLowerCase().includes(nombreBuscado)) {
+            responsableSelect.value = opt.value;
+            encontrado = true;
+            break;
+          }
+        }
+      }
+
+      if (!encontrado) {
+        console.warn('Responsable no encontrado en la lista:', data.responsable_nombre);
       }
     }
 

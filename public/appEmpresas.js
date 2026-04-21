@@ -581,12 +581,43 @@ async function iaLlenarFormulario(tipo) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Error IA');
 
+    // Llenar campos básicos
     if (data.fecha)        document.getElementById('date').value         = data.fecha;
     if (data.empresa)      document.getElementById('empresa').value      = data.empresa;
     if (data.pendientes)   document.getElementById('pendientes').value   = data.pendientes;
     if (data.observaciones !== undefined)
                            document.getElementById('observaciones').value = data.observaciones;
     if (data.estatus)      document.getElementById('estatus').value      = data.estatus;
+
+    // 🆕 Asignar responsable si se reconoció un nombre
+    if (data.responsable_nombre) {
+      const responsableSelect = document.getElementById('responsable');
+      const nombreBuscado = data.responsable_nombre.trim().toLowerCase();
+      let encontrado = false;
+
+      for (let opt of responsableSelect.options) {
+        if (opt.text.trim().toLowerCase() === nombreBuscado) {
+          responsableSelect.value = opt.value;
+          encontrado = true;
+          break;
+        }
+      }
+
+      // Búsqueda parcial (contiene) como fallback
+      if (!encontrado) {
+        for (let opt of responsableSelect.options) {
+          if (opt.text.trim().toLowerCase().includes(nombreBuscado)) {
+            responsableSelect.value = opt.value;
+            encontrado = true;
+            break;
+          }
+        }
+      }
+
+      if (!encontrado) {
+        console.warn('Responsable no encontrado en la lista:', data.responsable_nombre);
+      }
+    }
 
     textoEl.value = '';
     if (statusEl) { statusEl.textContent = '✅ Formulario llenado'; setTimeout(() => { statusEl.style.display = 'none'; }, 3000); }

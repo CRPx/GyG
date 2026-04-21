@@ -751,7 +751,8 @@ app.post('/api/ia/crear-pendiente', requireAuth, async (req, res) => {
         + 'empresa (nombre de la empresa), '
         + 'pendientes (descripción del trabajo a realizar), '
         + 'observaciones (notas adicionales, puede ser cadena vacía), '
-        + 'estatus (uno de: Pendiente, En proceso, Completado). '
+        + 'estatus (uno de: Pendiente, En proceso, Completado), '
+        + 'responsable_nombre (nombre de la persona responsable de la tarea, si se menciona; de lo contrario, cadena vacía). '
         + 'Responde SOLO con el JSON, sin explicaciones ni bloques de código.\n\n'
         + 'Texto: ' + texto;
 
@@ -778,13 +779,14 @@ app.post('/api/ia/crear-pendiente', requireAuth, async (req, res) => {
 
       const hoy = new Date().toISOString().split('T')[0];
       const prompt = 'Eres un asistente que extrae información de tareas pendientes. '
-        + 'A partir del texto del usuario, devuelve SOLO un JSON con estos campos: '
-        + 'fecha (formato YYYY-MM-DD, si no se menciona usa ' + hoy + '), '
-        + 'empresa (nombre de la empresa), '
-        + 'pendientes (descripción del trabajo a realizar), '
-        + 'observaciones (notas adicionales, puede ser cadena vacía), '
-        + 'estatus (uno de: Pendiente, En proceso, Completado). '
-        + 'Responde SOLO con el JSON, sin explicaciones ni bloques de código.\n\nTexto: ' + texto;
+      + 'A partir del texto del usuario, devuelve SOLO un JSON con estos campos: '
+      + 'fecha (formato YYYY-MM-DD, si no se menciona usa ' + hoy + '), '
+      + 'empresa (nombre de la empresa), '
+      + 'pendientes (descripción del trabajo a realizar), '
+      + 'observaciones (notas adicionales, puede ser cadena vacía), '
+      + 'estatus (uno de: Pendiente, En proceso, Completado), '
+      + 'responsable_nombre (nombre de la persona responsable de la tarea, si se menciona; de lo contrario, cadena vacía). '
+      + 'Responde SOLO con el JSON, sin explicaciones ni bloques de código.\n\nTexto: ' + texto;
 
       const result = await genai.models.generateContent({ model: 'gemini-2.5-flash-lite', contents: prompt });
             let raw = result.text.trim();
