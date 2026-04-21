@@ -252,13 +252,18 @@ function renderTasks() {
     const fechaMatch = !filterFechaValue || task.date === filterFechaValue;
     const responsableMatch = !filterResponsableValue || task.responsable_id == filterResponsableValue;
     const estatusMatch = !filterEstatusValue || task.estatus === filterEstatusValue;
-    return fechaMatch && responsableMatch && estatusMatch;   // ← cambiar empresaMatch por responsableMatch
+    return fechaMatch && responsableMatch && estatusMatch;
   });
 
   filtered.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
+  // Dividir en dos grupos
+  const pendientesActivos = filtered.filter(t => t.estatus !== 'Completado');
+  const completados = filtered.filter(t => t.estatus === 'Completado');
+
   tasksGrid.innerHTML = '';
 
+  // Si no hay resultados en absoluto
   if (filtered.length === 0) {
     tasksGrid.innerHTML = `
       <div class="empty-state no-tasks">
@@ -269,117 +274,139 @@ function renderTasks() {
     return;
   }
 
-  filtered.forEach(task => {
-    const isExpanded = expandedTaskId === task.id;
-    const statusClass = `status-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
-    const headerClass = `header-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
-    const formattedCreatedAt = getFormattedDateTime(task.createdAt);
+  // Función auxiliar para renderizar un conjunto de tarjetas en un contenedor
+  const renderGroup = (taskArray, container, groupTitle) => {
+    if (taskArray.length === 0) return;
 
-    const statusEmoji = {
-      'Pendiente': '🔴',
-      'En proceso': '🟡',
-      'Completado': '🟢'
-    };
+    // Crear título de sección
+    const sectionTitle = document.createElement('h3');
+    sectionTitle.className = 'section-title';
+    sectionTitle.textContent = groupTitle;
+    container.appendChild(sectionTitle);
 
-    const responsesHtml = task.respuestas && task.respuestas.length
-      ? task.respuestas.map(item => `
-          <div class="response-item">
-            <div class="response-meta">${getFormattedDateTime(item.creado_en)} por ${escapeHtml(item.usuario_nombre || 'Desconocido')}</div>
-            <div class="response-text">${escapeHtml(item.respuesta)}</div>
+    // Crear contenedor de tarjetas para este grupo
+    const groupGrid = document.createElement('div');
+    groupGrid.className = 'tasks-group-grid';
+    container.appendChild(groupGrid);
+
+    taskArray.forEach(task => {
+      const isExpanded = expandedTaskId === task.id;
+      const statusClass = `status-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
+      const headerClass = `header-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
+      const formattedCreatedAt = getFormattedDateTime(task.createdAt);
+
+      const statusEmoji = {
+        'Pendiente': '🔴',
+        'En proceso': '🟡',
+        'Completado': '🟢'
+      };
+
+      const responsesHtml = task.respuestas && task.respuestas.length
+        ? task.respuestas.map(item => `
+            <div class="response-item">
+              <div class="response-meta">${getFormattedDateTime(item.creado_en)} por ${escapeHtml(item.usuario_nombre || 'Desconocido')}</div>
+              <div class="response-text">${escapeHtml(item.respuesta)}</div>
+            </div>
+          `).join('')
+        : `<div class="response-empty">No hay respuestas aún</div>`;
+
+      const card = document.createElement('div');
+      card.className = `task-card ${statusClass} ${isExpanded ? 'expanded' : ''}`;
+
+      card.innerHTML = `
+        <div class="task-header ${headerClass}">
+          <div class="task-company">${escapeHtml(task.empresa)}</div>
+          <div class="task-meta" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 4px;">
+            Creado por ${escapeHtml(task.creador_nombre)}
           </div>
-        `).join('')
-      : `<div class="response-empty">No hay respuestas aún</div>`;
-
-    const card = document.createElement('div');
-    card.className = `task-card ${statusClass} ${isExpanded ? 'expanded' : ''}`;
-
-    card.innerHTML = `
-      <div class="task-header ${headerClass}">
-        <div class="task-company">${escapeHtml(task.empresa)}</div>
-        <div class="task-meta" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 4px;">
-          Creado por ${escapeHtml(task.creador_nombre)}
+          <div class="task-date">${formattedCreatedAt}</div>
         </div>
-        <div class="task-date">${formattedCreatedAt}</div>
-      </div>
 
-      <div class="task-body">
-        <div class="task-preview">
-          <div class="task-field">
-            <div class="task-field-label">Detalles del Trabajo</div>
-            <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
-          </div>
-          <div class="task-field">
-            <div class="task-field-label">Responsable</div>
-            <div class="task-field-value">${escapeHtml(task.responsable_nombre)}</div>
-          </div>
-        </div>
-
-        <div class="task-extra">
-          <div class="task-field">
-            <div class="task-field-label">Observaciones</div>
-            <div class="task-field-value">
-              ${task.observaciones ? escapeHtml(task.observaciones) : 'Sin observaciones'}
+        <div class="task-body">
+          <div class="task-preview">
+            <div class="task-field">
+              <div class="task-field-label">Detalles del Trabajo</div>
+              <div class="task-field-value">${escapeHtml(task.pendientes)}</div>
+            </div>
+            <div class="task-field">
+              <div class="task-field-label">Responsable</div>
+              <div class="task-field-value">${escapeHtml(task.responsable_nombre)}</div>
             </div>
           </div>
 
-          <div class="task-field">
-            <div class="task-field-label">Respuestas</div>
-            <div class="task-field-value responses-box">
-              ${responsesHtml}
-            </div>
-          </div>
-
-          <div class="task-field">
-            <div class="task-field-label">Agregar respuestas</div>
-            <div class="response-form" onclick="event.stopPropagation()">
-              <div class="voice-field">
-                <textarea id="responseInput-${task.id}" class="response-textarea" placeholder="Escribe una respuesta para este pendiente..."></textarea>
-                <button type="button" class="mic-btn" id="mic-response-${task.id}" title="Dictar texto por voz">${MIC_SVG}</button>
+          <div class="task-extra">
+            <div class="task-field">
+              <div class="task-field-label">Observaciones</div>
+              <div class="task-field-value">
+                ${task.observaciones ? escapeHtml(task.observaciones) : 'Sin observaciones'}
               </div>
+            </div>
+
+            <div class="task-field">
+              <div class="task-field-label">Respuestas</div>
+              <div class="task-field-value responses-box">
+                ${responsesHtml}
+              </div>
+            </div>
+
+            <div class="task-field">
+              <div class="task-field-label">Agregar respuestas</div>
+              <div class="response-form" onclick="event.stopPropagation()">
+                <div class="voice-field">
+                  <textarea id="responseInput-${task.id}" class="response-textarea" placeholder="Escribe una respuesta para este pendiente..."></textarea>
+                  <button type="button" class="mic-btn" id="mic-response-${task.id}" title="Dictar texto por voz">${MIC_SVG}</button>
+                </div>
+                <button
+                  class="btn-small btn-edit"
+                  onclick="event.stopPropagation(); addResponse(${task.id})"
+                >
+                  Guardar respuesta
+                </button>
+              </div>
+            </div>
+
+            <div class="task-field">
+              <div class="task-field-label">Estatus</div>
+              <span class="status-badge ${statusClass}">
+                ${statusEmoji[task.estatus]} ${task.estatus}
+              </span>
+            </div>
+
+            <div class="task-actions" onclick="event.stopPropagation()">
               <button
                 class="btn-small btn-edit"
-                onclick="event.stopPropagation(); addResponse(${task.id})"
+                onclick="event.stopPropagation(); openEditModal(${task.id})"
               >
-                Guardar respuesta
+                Editar
+              </button>
+
+              <button
+                class="btn-small btn-delete"
+                onclick="event.stopPropagation(); deleteTask(${task.id})"
+              >
+                Eliminar
               </button>
             </div>
           </div>
-
-          <div class="task-field">
-            <div class="task-field-label">Estatus</div>
-            <span class="status-badge ${statusClass}">
-              ${statusEmoji[task.estatus]} ${task.estatus}
-            </span>
-          </div>
-
-          <div class="task-actions" onclick="event.stopPropagation()">
-            <button
-              class="btn-small btn-edit"
-              onclick="event.stopPropagation(); openEditModal(${task.id})"
-            >
-              Editar
-            </button>
-
-            <button
-              class="btn-small btn-delete"
-              onclick="event.stopPropagation(); deleteTask(${task.id})"
-            >
-              Eliminar
-            </button>
-          </div>
         </div>
-      </div>
-    `;
+      `;
 
-    card.addEventListener('click', () => toggleTaskDetails(task.id));
-    tasksGrid.appendChild(card);
+      card.addEventListener('click', () => toggleTaskDetails(task.id));
+      groupGrid.appendChild(card);
 
-    if (isExpanded) {
-      const responseTa  = card.querySelector(`#responseInput-${task.id}`);
-      const responseMic = card.querySelector(`#mic-response-${task.id}`);
-      if (responseTa && responseMic) attachVoice(responseTa, responseMic);
-    }
-  });
+      if (isExpanded) {
+        const responseTa  = card.querySelector(`#responseInput-${task.id}`);
+        const responseMic = card.querySelector(`#mic-response-${task.id}`);
+        if (responseTa && responseMic) attachVoice(responseTa, responseMic);
+      }
+    });
+  };
+
+  // Renderizar grupo de pendientes activos (no completados)
+  renderGroup(pendientesActivos, tasksGrid, '📋 Pendientes activos');
+
+  // Renderizar grupo de completados
+  renderGroup(completados, tasksGrid, '✅ Completados');
 }
 
 async function addResponse(taskId) {
