@@ -1,3 +1,5 @@
+let currentView = 'detail'; // 'detail' o 'list'
+const toggleViewBtn = document.getElementById('toggleViewBtn');
 let tasks = [];
 let editingId = null;
 let expandedTaskId = null;
@@ -243,6 +245,24 @@ taskForm.addEventListener('submit', async (e) => {
   }
 });
 
+function toggleView() {
+  const leftPanel = document.querySelector('.left-panel');
+  if (currentView === 'detail') {
+    currentView = 'list';
+    toggleViewBtn.textContent = '🔎 Cambiar a vista detalle';
+    leftPanel.classList.add('view-list');
+  } else {
+    currentView = 'detail';
+    toggleViewBtn.textContent = '📋 Cambiar a vista lista';
+    leftPanel.classList.remove('view-list');
+  }
+  renderTasks(); // Re-renderizar con la nueva vista
+}
+
+if (toggleViewBtn) {
+  toggleViewBtn.addEventListener('click', toggleView);
+}
+
 function renderTasks() {
   const filterFechaValue = filterFecha?.value || '';
   const filterResponsableValue = filterResponsable.value;
@@ -257,13 +277,11 @@ function renderTasks() {
 
   filtered.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
-  // Dividir en dos grupos
   const pendientesActivos = filtered.filter(t => t.estatus !== 'Completado');
   const completados = filtered.filter(t => t.estatus === 'Completado');
 
   tasksGrid.innerHTML = '';
 
-  // Si no hay resultados en absoluto
   if (filtered.length === 0) {
     tasksGrid.innerHTML = `
       <div class="empty-state no-tasks">
@@ -274,17 +292,65 @@ function renderTasks() {
     return;
   }
 
-  // Función auxiliar para renderizar un conjunto de tarjetas en un contenedor
+  if (currentView === 'list') {
+    // ========== VISTA LISTA ==========
+    const renderListGroup = (taskArray, container, groupTitle) => {
+      if (taskArray.length === 0) return;
+
+      const sectionTitle = document.createElement('h3');
+      sectionTitle.className = 'section-title';
+      sectionTitle.textContent = groupTitle;
+      container.appendChild(sectionTitle);
+
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'tasks-list-group';
+      container.appendChild(groupDiv);
+
+      taskArray.forEach(task => {
+        const statusClass = `status-${task.estatus.toLowerCase().replace(/\s+/g, '-')}`;
+        const formattedDate = getFormattedDate(task.date);
+
+        const item = document.createElement('div');
+        item.className = `task-list-item ${statusClass}`;
+        item.addEventListener('click', () => {
+          // Opcional: al hacer clic se podría expandir a vista detalle o abrir modal
+          // Por ahora, lo dejamos sin acción o podrías abrir el modal de edición
+          openEditModal(task.id);
+        });
+
+        item.innerHTML = `
+          <div style="flex:1;">
+            <div class="task-list-title">${escapeHtml(task.empresa)}</div>
+            <div class="task-list-meta">
+              <span>📅 ${formattedDate}</span>
+              <span>👤 ${escapeHtml(task.responsable_nombre)}</span>
+            </div>
+          </div>
+          <div class="task-list-status">
+            <span class="status-badge ${statusClass}">
+              ${task.estatus === 'Pendiente' ? '🔴' : task.estatus === 'En proceso' ? '🟡' : '🟢'} ${task.estatus}
+            </span>
+          </div>
+        `;
+
+        groupDiv.appendChild(item);
+      });
+    };
+
+    renderListGroup(pendientesActivos, tasksGrid, '📋 Pendientes activos');
+    renderListGroup(completados, tasksGrid, '✅ Completados');
+    return;
+  }
+
+    // ========== VISTA DETALLE (tarjetas expandibles) ==========
   const renderGroup = (taskArray, container, groupTitle) => {
     if (taskArray.length === 0) return;
 
-    // Crear título de sección
     const sectionTitle = document.createElement('h3');
     sectionTitle.className = 'section-title';
     sectionTitle.textContent = groupTitle;
     container.appendChild(sectionTitle);
 
-    // Crear contenedor de tarjetas para este grupo
     const groupGrid = document.createElement('div');
     groupGrid.className = 'tasks-group-grid';
     container.appendChild(groupGrid);
