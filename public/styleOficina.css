@@ -234,6 +234,119 @@ textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
   margin-top: 0;
 }
 
+/* Acordeones desplegables */
+.collapsible-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  overflow: hidden;
+  transition: var(--ease);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.section-header:hover {
+  background: var(--navy-light);
+}
+
+.section-header h3,
+.section-header .filter-label {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.toggle-icon {
+  font-size: 14px;
+  color: var(--tx-muted);
+  transition: transform 0.25s ease;
+}
+
+.collapsible-section.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  max-height: 600px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.2s ease;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+  max-height: 0;
+  padding: 0;
+}
+
+/* Ajustes para el contenido interno */
+#stats-table-container .collapsible-content {
+  padding: 0;
+}
+
+.filters-container .collapsible-content {
+  padding: 12px 16px;
+}
+
+.filters-container.collapsed .collapsible-content {
+  padding: 0 16px;
+}
+
+.collapsible-section.collapsed {
+  border-radius: var(--r-lg);
+}
+
+/* Botones de cambio rápido de estatus */
+.task-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-actions-left {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.task-actions-right {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.btn-status {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--tx-primary);
+  font-weight: 600;
+  padding: 6px 12px;
+  font-size: 12px;
+  transition: var(--ease);
+}
+
+.btn-status:hover {
+  background: var(--navy-light);
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
 /* RESPONSIVE — Tablet */
 @media (max-width: 1100px) {
   .page-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; align-items: stretch; }

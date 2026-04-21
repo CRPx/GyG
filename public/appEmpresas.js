@@ -373,19 +373,22 @@ function renderTasks() {
             </div>
 
             <div class="task-actions" onclick="event.stopPropagation()">
-              <button
-                class="btn-small btn-edit"
-                onclick="event.stopPropagation(); openEditModal(${task.id})"
-              >
-                Editar
-              </button>
-
-              <button
-                class="btn-small btn-delete"
-                onclick="event.stopPropagation(); deleteTask(${task.id})"
-              >
-                Eliminar
-              </button>
+              ${task.estatus !== 'Completado' ? `
+                <div class="task-actions-left">
+                  ${task.estatus === 'Pendiente' ? `
+                    <button class="btn-small btn-status" onclick="event.stopPropagation(); cambiarEstatus(${task.id}, 'En proceso')">🟡 En proceso</button>
+                    <button class="btn-small btn-status" onclick="event.stopPropagation(); cambiarEstatus(${task.id}, 'Completado')">🟢 Completado</button>
+                  ` : ''}
+                  ${task.estatus === 'En proceso' ? `
+                    <button class="btn-small btn-status" onclick="event.stopPropagation(); cambiarEstatus(${task.id}, 'Pendiente')">🔴 Pendiente</button>
+                    <button class="btn-small btn-status" onclick="event.stopPropagation(); cambiarEstatus(${task.id}, 'Completado')">🟢 Completado</button>
+                  ` : ''}
+                </div>
+              ` : ''}
+              <div class="task-actions-right">
+                <button class="btn-small btn-edit" onclick="event.stopPropagation(); openEditModal(${task.id})">Editar</button>
+                <button class="btn-small btn-delete" onclick="event.stopPropagation(); deleteTask(${task.id})">Eliminar</button>
+              </div>
             </div>
           </div>
         </div>
@@ -442,6 +445,35 @@ async function addResponse(taskId) {
     alert('No se pudo guardar la respuesta');
   }
 }
+
+async function cambiarEstatus(id, nuevoEstatus) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  try {
+    const res = await fetch(`/api/solicitudes-empresas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        fecha: task.date,
+        empresa: task.empresa,
+        pendientes: task.pendientes,
+        observaciones: task.observaciones,
+        estatus: nuevoEstatus,
+        responsable_id: task.responsable_id
+      })
+    });
+
+    if (!res.ok) throw new Error('Error al actualizar estatus');
+    await loadTasks();
+  } catch (error) {
+    console.error('Error al cambiar estatus:', error);
+    alert('No se pudo actualizar el estatus');
+  }
+}
+
+window.cambiarEstatus = cambiarEstatus;
 
 function updateStats() {
   const statsByUser = {};
@@ -752,4 +784,43 @@ taskForm.addEventListener('submit', async () => {
   setTimeout(() => {
     if (rightPanel) rightPanel.classList.remove('mobile-open');
   }, 600);
+});
+
+// Inicializar acordeones desplegables
+function initCollapsibleSections() {
+  const headers = document.querySelectorAll('.section-header');
+  headers.forEach(header => {
+    header.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const section = header.closest('.collapsible-section');
+      if (section) {
+        section.classList.toggle('collapsed');
+        // Opcional: guardar estado en localStorage
+        const targetId = header.dataset.target;
+        if (targetId) {
+          const isCollapsed = section.classList.contains('collapsed');
+          localStorage.setItem(`collapsed_${targetId}`, isCollapsed);
+        }
+      }
+    });
+  });
+
+  // Restaurar estado previo desde localStorage (opcional)
+  document.querySelectorAll('.collapsible-section').forEach(section => {
+    const header = section.querySelector('.section-header');
+    if (header && header.dataset.target) {
+      const targetId = header.dataset.target;
+      const savedState = localStorage.getItem(`collapsed_${targetId}`);
+      if (savedState === 'true') {
+        section.classList.add('collapsed');
+      } else if (savedState === 'false') {
+        section.classList.remove('collapsed');
+      }
+    }
+  });
+}
+
+// Llamar a la función cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+  initCollapsibleSections();
 });

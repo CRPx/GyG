@@ -30,45 +30,51 @@
     <section class="left-panel">
       <div class="left-panel-inner">
 
-        <!-- Resumen por responsable -->
-        <div id="stats-table-container">
-          <h3>Resumen</h3>
-          <table id="statsTable" class="stats-table">
-            <thead>
-              <tr>
-                <th>Responsable</th>
-                <th>Total</th>
-                <th>Pendiente</th>
-                <th>En proceso</th>
-                <th>Completado</th>
-              </tr>
-            </thead>
-            <tbody id="statsTableBody"></tbody>
-          </table>
+        <!-- Resumen por responsable (desplegable) -->
+        <div id="stats-table-container" class="collapsible-section collapsed">
+          <div class="section-header" data-target="statsContent">
+            <h3>📊 Resumen</h3>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div id="statsContent" class="collapsible-content">
+            <table id="statsTable" class="stats-table">
+              <thead>
+                <tr>
+                  <th>Responsable</th>
+                  <th>Total</th>
+                  <th>Pendiente</th>
+                  <th>En proceso</th>
+                  <th>Completado</th>
+                </tr>
+              </thead>
+              <tbody id="statsTableBody"></tbody>
+            </table>
+          </div>
         </div>
 
-        <!-- Filtros -->
-        <div class="filters-container">
-          <span class="filter-label">Filtrar por</span>
-
-          <div class="filters-row filters-row-selects">
-            <input type="date" id="filterFecha" class="filter-select">
-
-            <select id="filterResponsable" class="filter-select">
-              <option value="">Responsable</option>
-            </select>
-
-            <select id="filterEstatus" class="filter-select">
-              <option value="">Estatus</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="En proceso">En proceso</option>
-              <option value="Completado">Completado</option>
-            </select>
+        <!-- Filtros (desplegable) -->
+        <div class="filters-container collapsible-section collapsed">
+          <div class="section-header" data-target="filtersContent">
+            <span class="filter-label">🔍 Filtrar por</span>
+            <span class="toggle-icon">▼</span>
           </div>
-
-          <div class="filters-row filters-row-actions">
-            <button class="btn-secondary" onclick="clearFilters()">Limpiar</button>
-            <button class="btn-secondary" onclick="exportData()">Exportar Excel</button>
+          <div id="filtersContent" class="collapsible-content">
+            <div class="filters-row filters-row-selects">
+              <input type="date" id="filterFecha" class="filter-select">
+              <select id="filterResponsable" class="filter-select">
+                <option value="">Responsable</option>
+              </select>
+              <select id="filterEstatus" class="filter-select">
+                <option value="">Estatus</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Completado">Completado</option>
+              </select>
+            </div>
+            <div class="filters-row filters-row-actions">
+              <button class="btn-secondary" onclick="clearFilters()">Limpiar</button>
+              <button class="btn-secondary" onclick="exportData()">Exportar Excel</button>
+            </div>
           </div>
         </div>
 
