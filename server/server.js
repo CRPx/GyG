@@ -2,7 +2,6 @@ require('dotenv').config();
 
 const multer = require('multer');
 const fs = require('fs');
-const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -50,6 +49,28 @@ function isValidPin(pin) {
   return /^\d{4}$/.test(String(pin));
 }
 
+// ─── Configuración de Multer para subida de archivos ─────────────────────
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Subir un nivel desde /server y luego a /uploads
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50 MB
+});
+
 app.use(express.json());
 app.use(session({
   name: 'gyg_sid',
@@ -87,6 +108,9 @@ app.get('/', (req, res) => {
 
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Servir archivos subidos (accesibles en /uploads/nombre-archivo)
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 function requireAuth(req, res, next) {
   if (!req.session || !req.session.user) {
@@ -884,6 +908,209 @@ app.get('/api/exportar-excel-empresas', requireAuth, (req, res) => {
       res.status(500).json({ error: 'Error al generar Excel', detalle: error.message });
     }
   });
+});
+
+// ═══════════════════════════════════════════════════════
+// REPOSITORIO (Google Drive simplificado)
+// ═══════════════════════════════════════════════════════
+
+// Obtener contenido de una carpeta (raíz si no se especifica)
+app.get('/api/repositorio', requireAuth, (req, res) => {
+  const carpetaId = req.query.carpetaId || null;
+
+  const queryCarpetas = `
+    SELECT id, nombre, 'carpeta' as tipo, creado_en
+    FROM carpetas
+    WHERE carpeta_padre_id ${carpetaId ? '= ?' : 'IS NULL'}
+    ORDER BY nombre
+  `;
+  const paramsCarpetas = carpetaId ? [carpetaId] : [];
+
+  const queryArchivos = `
+    SELECT id, nombre, nombre_original, tamano, tipo_mime, 'archivo' as tipo, creado_en
+    FROM archivos
+    WHERE carpeta_id ${carpetaId ? '= ?' : 'IS NULL'}
+    ORDER BY nombre_original
+  `;
+  const paramsArchivos = carpetaId ? [carpetaId] : [];
+
+  db.query(queryCarpetas, paramsCarpetas, (err, carpetas) => {
+    if (err) return res.status(500).json({ error: err.message });
+    db.query(queryArchivos, paramsArchivos, (err2, archivos) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      const items = [
+        ...carpetas.map(c => ({ ...c, tipo: 'carpeta' })),
+        ...archivos.map(a => ({ ...a, tipo: 'archivo' }))
+      ];
+      res.json(items);
+    });
+  });
+});;
+
+// Descargar / ver archivo
+app.get('/api/repositorio/descargar/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT nombre_original, ruta, tipo_mime FROM archivos WHERE id = ?', [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).send('Archivo no encontrado');
+    const archivo = results[0];
+    res.download(archivo.ruta, archivo.nombre_original);
+  });
+});
+
+// Crear una nueva carpeta
+app.post('/api/repositorio/carpetas', requireAuth, (req, res) => {
+  const { nombre, carpeta_padre_id } = req.body;
+  const creado_por_id = req.session.user.id;
+
+  if (!nombre || nombre.trim() === '') {
+    return res.status(400).json({ error: 'El nombre es obligatorio' });
+  }
+
+  const sql = `
+    INSERT INTO carpetas (nombre, carpeta_padre_id, creado_por_id)
+    VALUES (?, ?, ?)
+  `;
+  db.query(sql, [nombre.trim(), carpeta_padre_id || null, creado_por_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ mensaje: 'Carpeta creada', id: result.insertId });
+  });
+});
+
+// Subir archivo(s)
+app.post('/api/repositorio/archivos', requireAuth, upload.single('archivo'), (req, res) => {
+  const { carpeta_id } = req.body;
+  const creado_por_id = req.session.user.id;
+  const archivo = req.file;
+
+  if (!archivo) {
+    return res.status(400).json({ error: 'No se recibió ningún archivo' });
+  }
+
+  const sql = `
+    INSERT INTO archivos (nombre, nombre_original, ruta, tamano, tipo_mime, carpeta_id, creado_por_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const params = [
+    archivo.filename,
+    archivo.originalname,
+    archivo.path,
+    archivo.size,
+    archivo.mimetype,
+    carpeta_id || null,
+    creado_por_id
+  ];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      // Si hay error, intentamos borrar el archivo subido
+      fs.unlink(archivo.path, () => {});
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ mensaje: 'Archivo subido', id: result.insertId });
+  });
+});
+
+// Eliminar un archivo
+app.delete('/api/repositorio/archivos/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+
+  // Primero obtenemos la ruta para borrar el archivo físico
+  db.query('SELECT ruta FROM archivos WHERE id = ?', [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ error: 'Archivo no encontrado' });
+
+    const ruta = results[0].ruta;
+
+    db.query('DELETE FROM archivos WHERE id = ?', [id], (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+
+      // Borrar archivo físico (no bloqueante)
+      fs.unlink(ruta, (e) => {
+        if (e) console.error('Error al borrar archivo físico:', e.message);
+      });
+
+      res.json({ mensaje: 'Archivo eliminado' });
+    });
+  });
+});
+
+// Eliminar una carpeta (y su contenido)
+app.delete('/api/repositorio/carpetas/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+
+  // Por simplicidad, solo borramos la carpeta (las FK en cascada borrarán archivos y subcarpetas)
+  db.query('DELETE FROM carpetas WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ mensaje: 'Carpeta eliminada' });
+  });
+});
+
+// Buscar archivos/carpetas por nombre
+app.get('/api/repositorio/buscar', requireAuth, (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim() === '') {
+    return res.json({ carpetas: [], archivos: [] });
+  }
+
+  const termino = `%${q.trim()}%`;
+
+  const sqlCarpetas = `
+    SELECT id, nombre, 'carpeta' as tipo, creado_en
+    FROM carpetas
+    WHERE nombre LIKE ?
+    ORDER BY nombre
+  `;
+  const sqlArchivos = `
+    SELECT id, nombre, nombre_original, tamano, tipo_mime, 'archivo' as tipo, creado_en
+    FROM archivos
+    WHERE nombre_original LIKE ? OR nombre LIKE ?
+    ORDER BY nombre_original
+  `;
+
+  db.query(sqlCarpetas, [termino], (err, carpetas) => {
+    if (err) return res.status(500).json({ error: err.message });
+    db.query(sqlArchivos, [termino, termino], (err2, archivos) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({
+        carpetas: carpetas.map(c => ({ ...c, tipo: 'carpeta' })),
+        archivos: archivos.map(a => ({ ...a, tipo: 'archivo' }))
+      });
+    });
+  });
+});
+
+// Función auxiliar para obtener la ruta (breadcrumbs)
+function obtenerRutaCarpeta(carpetaId, res) {
+  if (!carpetaId) return res.json([]);
+
+  const sql = `
+    WITH RECURSIVE ruta AS (
+      SELECT id, nombre, carpeta_padre_id
+      FROM carpetas
+      WHERE id = ?
+      UNION ALL
+      SELECT c.id, c.nombre, c.carpeta_padre_id
+      FROM carpetas c
+      INNER JOIN ruta r ON c.id = r.carpeta_padre_id
+    )
+    SELECT id, nombre FROM ruta ORDER BY id
+  `;
+
+  db.query(sql, [carpetaId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results.reverse());
+  });
+}
+
+// Ruta sin parámetro (raíz)
+app.get('/api/repositorio/ruta', requireAuth, (req, res) => {
+  obtenerRutaCarpeta(null, res);
+});
+
+// Ruta con parámetro (carpeta específica)
+app.get('/api/repositorio/ruta/:carpetaId', requireAuth, (req, res) => {
+  obtenerRutaCarpeta(req.params.carpetaId, res);
 });
 
 app.listen(PORT, '0.0.0.0', () => {
