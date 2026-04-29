@@ -27,6 +27,7 @@ const db = mysql.createConnection({
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT || 3306,  // Si no se define el puerto, usará 3306
+  charset: 'utf8mb4' 
 });
 
 db.connect((err) => {

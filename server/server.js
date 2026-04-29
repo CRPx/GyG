@@ -12,6 +12,8 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { GoogleGenAI } = require('@google/genai');
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const fsPromises = require('fs').promises;
+const archiver = require('archiver');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -978,37 +980,70 @@ app.post('/api/repositorio/carpetas', requireAuth, (req, res) => {
 });
 
 // Subir archivo(s)
-app.post('/api/repositorio/archivos', requireAuth, upload.single('archivo'), (req, res) => {
+// Subir archivo(s)
+app.post('/api/repositorio/archivos', requireAuth, upload.array('archivos', 100), (req, res) => {
   const { carpeta_id } = req.body;
   const creado_por_id = req.session.user.id;
-  const archivo = req.file;
+  const archivos = req.files;
 
-  if (!archivo) {
-    return res.status(400).json({ error: 'No se recibió ningún archivo' });
+  if (!archivos || archivos.length === 0) {
+    return res.status(400).json({ error: 'No se recibieron archivos' });
   }
 
-  const sql = `
-    INSERT INTO archivos (nombre, nombre_original, ruta, tamano, tipo_mime, carpeta_id, creado_por_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
-  const params = [
-    archivo.filename,
-    archivo.originalname,
-    archivo.path,
-    archivo.size,
-    archivo.mimetype,
-    carpeta_id || null,
-    creado_por_id
-  ];
+  const errores = [];
+  const exitos = [];
 
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      // Si hay error, intentamos borrar el archivo subido
-      fs.unlink(archivo.path, () => {});
-      return res.status(500).json({ error: err.message });
+  // Función para insertar un archivo en la BD (usando promesas)
+  const insertarArchivo = (archivo) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        INSERT INTO archivos (nombre, nombre_original, ruta, tamano, tipo_mime, carpeta_id, creado_por_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+      const params = [
+        archivo.filename,
+        archivo.originalname,
+        archivo.path,
+        archivo.size,
+        archivo.mimetype,
+        carpeta_id || null,
+        creado_por_id
+      ];
+      db.query(sql, params, (err, result) => {
+        if (err) {
+          // Intentar borrar el archivo físico si falla la inserción
+          fs.unlink(archivo.path, () => {});
+          return reject(err);
+        }
+        resolve(result.insertId);
+      });
+    });
+  };
+
+  // Procesar todos los archivos en paralelo
+  (async () => {
+    for (const archivo of archivos) {
+      // Corregir el nombre original: convertir de latin1 a utf8
+      const nombreOriginalCorregido = Buffer.from(archivo.originalname, 'latin1').toString('utf8');
+      archivo.originalname = nombreOriginalCorregido; // actualizamos para que se guarde correctamente
+      try {
+        const id = await insertarArchivo(archivo);
+        exitos.push(id);
+      } catch (err) {
+        console.error('Error al guardar archivo:', err.message);
+        errores.push(archivo.originalname);
+      }
     }
-    res.json({ mensaje: 'Archivo subido', id: result.insertId });
-  });
+    if (exitos.length > 0) {
+      res.json({
+        mensaje: `Se subieron ${exitos.length} archivo(s) correctamente`,
+        exitos,
+        errores
+      });
+    } else {
+      res.status(500).json({ error: 'No se pudo guardar ningún archivo', detalle: errores });
+    }
+  })();
 });
 
 // Eliminar un archivo
@@ -1112,6 +1147,228 @@ app.get('/api/repositorio/ruta', requireAuth, (req, res) => {
 app.get('/api/repositorio/ruta/:carpetaId', requireAuth, (req, res) => {
   obtenerRutaCarpeta(req.params.carpetaId, res);
 });
+
+// Mover archivo
+app.patch('/api/repositorio/archivos/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { carpeta_id } = req.body; // null para raíz
+  db.query('UPDATE archivos SET carpeta_id = ? WHERE id = ?', [carpeta_id || null, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ mensaje: 'Archivo movido' });
+  });
+});
+
+// Mover carpeta (con protección básica contra ciclos)
+app.patch('/api/repositorio/carpetas/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { carpeta_padre_id } = req.body; // null para raíz
+  // Evitar que una carpeta sea su propio padre o descendiente
+  if (carpeta_padre_id == id) {
+    return res.status(400).json({ error: 'No puedes mover una carpeta dentro de sí misma' });
+  }
+  // Verificar que no sea un descendiente (simplificado: solo impedir que se mueva a una subcarpeta propia)
+  const sqlCheck = `
+    WITH RECURSIVE subcarpetas AS (
+      SELECT id FROM carpetas WHERE carpeta_padre_id = ?
+      UNION ALL
+      SELECT c.id FROM carpetas c INNER JOIN subcarpetas s ON c.carpeta_padre_id = s.id
+    )
+    SELECT id FROM subcarpetas WHERE id = ?
+  `;
+  db.query(sqlCheck, [id, carpeta_padre_id || -1], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'No puedes mover una carpeta dentro de un descendiente' });
+    }
+    db.query('UPDATE carpetas SET carpeta_padre_id = ? WHERE id = ?', [carpeta_padre_id || null, id], (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ mensaje: 'Carpeta movida' });
+    });
+  });
+});
+
+// Función recursiva para copiar carpeta (retorna el nuevo id de la carpeta copiada)
+async function copiarCarpetaRecursiva(carpetaId, nuevoPadreId, creadorId, nuevaRutaBase) {
+  // Obtener la carpeta original
+  const [carpeta] = await db.promise().query('SELECT * FROM carpetas WHERE id = ?', [carpetaId]);
+  if (!carpeta.length) throw new Error('Carpeta no encontrada');
+  const original = carpeta[0];
+
+  // Crear nueva carpeta con nombre modificado (ej. "Nombre (copia)")
+  const nuevoNombre = original.nombre + ' (copia)';
+  const [res] = await db.promise().query(
+    'INSERT INTO carpetas (nombre, carpeta_padre_id, creado_por_id) VALUES (?, ?, ?)',
+    [nuevoNombre, nuevoPadreId, creadorId]
+  );
+  const nuevaCarpetaId = res.insertId;
+
+  // Copiar subcarpetas
+  const [subcarpetas] = await db.promise().query('SELECT id FROM carpetas WHERE carpeta_padre_id = ?', [carpetaId]);
+  for (const sub of subcarpetas) {
+    await copiarCarpetaRecursiva(sub.id, nuevaCarpetaId, creadorId);
+  }
+
+  // Copiar archivos
+  const [archivos] = await db.promise().query('SELECT * FROM archivos WHERE carpeta_id = ?', [carpetaId]);
+  for (const arch of archivos) {
+    // Copiar archivo físico
+    const nuevoNombreArchivo = `copia-${Date.now()}-${Math.random().toString(36).substring(2)}${path.extname(arch.nombre)}`;
+    const nuevaRuta = path.join(path.dirname(arch.ruta), nuevoNombreArchivo);
+    await fsPromises.copyFile(arch.ruta, nuevaRuta);
+    await db.promise().query(
+      'INSERT INTO archivos (nombre, nombre_original, ruta, tamano, tipo_mime, carpeta_id, creado_por_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [nuevoNombreArchivo, arch.nombre_original, nuevaRuta, arch.tamano, arch.tipo_mime, nuevaCarpetaId, creadorId]
+    );
+  }
+
+  return nuevaCarpetaId;
+}
+
+// Endpoint de copia
+app.post('/api/repositorio/copiar', requireAuth, async (req, res) => {
+  const { id, tipo } = req.body;
+  const creado_por_id = req.session.user.id;
+
+  try {
+    if (tipo === 'archivo') {
+      const [archivos] = await db.promise().query('SELECT * FROM archivos WHERE id = ?', [id]);
+      if (!archivos.length) return res.status(404).json({ error: 'Archivo no encontrado' });
+      const arch = archivos[0];
+      const nuevoNombreArchivo = `copia-${Date.now()}-${path.extname(arch.nombre)}`;
+      const nuevaRuta = path.join(path.dirname(arch.ruta), nuevoNombreArchivo);
+      await fsPromises.copyFile(arch.ruta, nuevaRuta);
+      await db.promise().query(
+        'INSERT INTO archivos (nombre, nombre_original, ruta, tamano, tipo_mime, carpeta_id, creado_por_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [nuevoNombreArchivo, arch.nombre_original, nuevaRuta, arch.tamano, arch.tipo_mime, arch.carpeta_id, creado_por_id]
+      );
+      res.json({ mensaje: 'Archivo copiado' });
+    } else { // carpeta
+      await copiarCarpetaRecursiva(id, null, creado_por_id);
+      res.json({ mensaje: 'Carpeta copiada' });
+    }
+  } catch (error) {
+    console.error('Error al copiar:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/repositorio/descargar-varios', requireAuth, async (req, res) => {
+  const { ids } = req.body; // [{id, tipo}, ...]
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Lista de elementos vacía' });
+  }
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="archivos-${Date.now()}.zip"`);
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.pipe(res);
+
+  const agregados = new Set(); // evitar duplicados
+
+  async function agregarArchivo(id, nombreRelativo = null) {
+    const [rows] = await db.promise().query('SELECT * FROM archivos WHERE id = ?', [id]);
+    if (rows.length === 0) return;
+    const arch = rows[0];
+    const nombreArchivo = nombreRelativo || arch.nombre_original;
+    if (!agregados.has(arch.ruta)) {
+      archive.file(arch.ruta, { name: nombreArchivo });
+      agregados.add(arch.ruta);
+    }
+  }
+
+  async function agregarCarpeta(id, rutaRelativa = '') {
+    const [carpeta] = await db.promise().query('SELECT nombre FROM carpetas WHERE id = ?', [id]);
+    if (!carpeta.length) return;
+    const nombreCarpeta = carpeta[0].nombre;
+    const base = rutaRelativa ? `${rutaRelativa}/${nombreCarpeta}` : nombreCarpeta;
+
+    // Archivos en la carpeta
+    const [archivos] = await db.promise().query('SELECT id, nombre_original FROM archivos WHERE carpeta_id = ?', [id]);
+    for (const arch of archivos) {
+      await agregarArchivo(arch.id, `${base}/${arch.nombre_original}`);
+    }
+
+    // Subcarpetas
+    const [subcarpetas] = await db.promise().query('SELECT id FROM carpetas WHERE carpeta_padre_id = ?', [id]);
+    for (const sub of subcarpetas) {
+      await agregarCarpeta(sub.id, base);
+    }
+  }
+
+  try {
+    for (const item of ids) {
+      if (item.tipo === 'archivo') {
+        await agregarArchivo(item.id);
+      } else if (item.tipo === 'carpeta') {
+        await agregarCarpeta(item.id);
+      }
+    }
+    archive.finalize();
+  } catch (err) {
+    console.error('Error al generar ZIP:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Renombrar archivo
+app.patch('/api/repositorio/archivos/:id/renombrar', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { nombre } = req.body;
+  if (!nombre || !nombre.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+
+  db.query('SELECT nombre, nombre_original, ruta FROM archivos WHERE id = ?', [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ error: 'Archivo no encontrado' });
+    const archivo = results[0];
+    const ext = path.extname(archivo.nombre_original); // .pdf, .jpg, etc.
+    const nuevoNombreOriginal = nombre.endsWith(ext) ? nombre : nombre + ext;
+    const nuevoNombreArchivo = Date.now() + '-' + Math.random().toString(36).substring(2) + ext;
+    const rutaNueva = path.join(path.dirname(archivo.ruta), nuevoNombreArchivo);
+
+    fs.rename(archivo.ruta, rutaNueva, (errFs) => {
+      if (errFs) return res.status(500).json({ error: 'Error al renombrar archivo físicamente' });
+      db.query('UPDATE archivos SET nombre_original = ?, nombre = ?, ruta = ? WHERE id = ?',
+        [nuevoNombreOriginal, nuevoNombreArchivo, rutaNueva, id],
+        (errUpdate) => {
+          if (errUpdate) return res.status(500).json({ error: errUpdate.message });
+          res.json({ mensaje: 'Archivo renombrado', nuevoNombre: nuevoNombreOriginal });
+        });
+    });
+  });
+});
+
+// Renombrar carpeta
+app.patch('/api/repositorio/carpetas/:id/renombrar', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { nombre } = req.body;
+  if (!nombre || !nombre.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+  db.query('UPDATE carpetas SET nombre = ? WHERE id = ?', [nombre.trim(), id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ mensaje: 'Carpeta renombrada', nuevoNombre: nombre.trim() });
+  });
+});
+
+//Endpoint para previsualizar archivos (PDF, imágenes)
+app.get('/api/repositorio/ver/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT nombre, nombre_original, ruta, tipo_mime FROM archivos WHERE id = ?', [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).send('Archivo no encontrado');
+
+    const archivo = results[0];
+    const filePath = archivo.ruta;
+
+    // Verificar que el archivo físico existe
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('Archivo físico no encontrado');
+    }
+
+    // Configurar cabeceras para visualización (sin Content-Disposition attachment)
+    res.type(archivo.tipo_mime || 'application/octet-stream');
+    res.sendFile(filePath);
+  });
+});
+
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);

@@ -36,57 +36,103 @@ function attachVoice(textarea, micBtn) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { micBtn.style.display = 'none'; return; }
 
-  const recognition = new SR();
-  recognition.lang = 'es-MX';
-  recognition.continuous = true;
-  recognition.interimResults = true;
-
+  let recognition;
   let isRecording = false;
   let baseText = '';
+
+  function crearReconocedor() {
+    const rec = new SR();
+    rec.lang = 'es-MX';
+    rec.continuous = false;         // se detiene después de cada pausa
+    rec.interimResults = true;
+
+    rec.onstart = () => {
+      isRecording = true;
+      micBtn.classList.add('mic-recording');
+      micBtn.title = 'Detener dictado';
+    };
+
+    rec.onend = () => {
+      // Si el usuario no ha detenido manualmente, reiniciamos automáticamente
+      if (isRecording) {
+        // Pequeño retardo para evitar conflictos de reinicio rápido
+        setTimeout(() => {
+          if (isRecording) {
+            recognition = crearReconocedor();
+            recognition.start();
+          }
+        }, 100);
+      } else {
+        micBtn.classList.remove('mic-recording');
+        micBtn.title = 'Dictar texto por voz';
+        textarea.value = textarea.value.trim();
+      }
+    };
+
+    rec.onresult = (event) => {
+      let interim = '';
+      let newFinal = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          newFinal += result[0].transcript + ' ';
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+
+      // Solo añadimos el nuevo texto final si no está ya al final de baseText
+      if (newFinal.trim() && !baseText.endsWith(newFinal.trim())) {
+        baseText += newFinal;
+      }
+
+      textarea.value = (baseText + interim).replace(/\s+/g, ' ').trim();
+    };
+
+    rec.onerror = (e) => {
+      // Errores recuperables: ignorar y reiniciar si seguimos en grabación
+      if (e.error === 'no-speech' || e.error === 'aborted') {
+        if (isRecording) {
+          setTimeout(() => {
+            if (isRecording) {
+              recognition = crearReconocedor();
+              recognition.start();
+            }
+          }, 100);
+        }
+        return;
+      }
+      console.error('Error de voz:', e.error);
+      isRecording = false;
+      micBtn.classList.remove('mic-recording');
+    };
+
+    return rec;
+  }
 
   micBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (isRecording) {
-      recognition.stop();
+      // Detener definitivamente
+      isRecording = false;
+      if (recognition) {
+        recognition.stop();
+        recognition = null;
+      }
+      micBtn.classList.remove('mic-recording');
+      micBtn.title = 'Dictar texto por voz';
+      textarea.value = textarea.value.trim();
     } else {
-      baseText = textarea.value;
+      // Iniciar nueva sesión conservando el texto actual
+      baseText = textarea.value.trim();
+      if (baseText) baseText += ' ';   // espacio para separar lo nuevo
+      recognition = crearReconocedor();
       recognition.start();
     }
   });
-
-  recognition.onstart = () => {
-    isRecording = true;
-    micBtn.classList.add('mic-recording');
-    micBtn.title = 'Detener dictado';
-  };
-
-  recognition.onend = () => {
-    isRecording = false;
-    micBtn.classList.remove('mic-recording');
-    micBtn.title = 'Dictar texto por voz';
-    textarea.value = textarea.value.trim();
-  };
-
-  recognition.onresult = (event) => {
-    let interim = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      if (event.results[i].isFinal) {
-        baseText += event.results[i][0].transcript;
-      } else {
-        interim += event.results[i][0].transcript;
-      }
-    }
-    textarea.value = baseText + interim;
-  };
-
-  recognition.onerror = (e) => {
-    isRecording = false;
-    micBtn.classList.remove('mic-recording');
-    if (e.error !== 'aborted' && e.error !== 'no-speech') {
-      console.error('Error de voz:', e.error);
-    }
-  };
 }
 
 function initVoiceFields() {

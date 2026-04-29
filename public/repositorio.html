@@ -6,118 +6,570 @@
   <title>Repositorio GyG</title>
   <link rel="stylesheet" href="/styleOficina.css">
   <style>
-    /* Estilos adicionales específicos del repositorio */
+    /* ==========================================================================
+       REPOSITORIO – diseño profesional
+       ========================================================================== */
+
+    /* Contenedor principal */
     .repositorio-container {
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 28px 32px;
     }
+
+    /* Cabecera */
     .repositorio-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 18px;
+      margin-bottom: 28px;
     }
+
     .breadcrumbs {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 14px;
+      gap: 6px;
+      font-size: 0.95rem;
       color: var(--tx-muted);
+      background: var(--surface-alt);
+      padding: 6px 16px;
+      border-radius: var(--r-xl);
+      border: 1px solid var(--border);
+      box-shadow: var(--sh-card);
+      flex-wrap: wrap;
+      width: max-content;          /* el ancho se adapta al contenido */
+      max-width: 100%;             /* evita que se desborde en pantallas pequeñas */
     }
+
     .breadcrumbs a {
       color: var(--navy);
       text-decoration: none;
       font-weight: 600;
+      transition: opacity 0.2s;
     }
-    .breadcrumbs a:hover { text-decoration: underline; }
+
+    .breadcrumbs a:hover {
+      opacity: 0.7;
+      text-decoration: none;
+    }
+
+    .breadcrumbs span {
+      color: var(--tx-muted);
+    }
+
+    /* Acciones */
     .acciones {
       display: flex;
       gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
     }
+
     .search-box {
       display: flex;
       gap: 8px;
       align-items: center;
     }
+
     .search-box input {
       min-width: 260px;
+      border-radius: var(--r-xl);
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--sh-card);
+      transition: var(--ease);
     }
+
+    .search-box input:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(26,43,109,0.1);
+    }
+
+    /* Botones de acción */
+    .btn-primary {
+      border-radius: var(--r-xl);
+      padding: 10px 22px;
+      font-weight: 700;
+    }
+
+    .btn-secondary {
+      border-radius: var(--r-xl);
+      padding: 10px 20px;
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: white;
+      border-radius: var(--r-xl);
+      padding: 10px 22px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: var(--ease);
+    }
+
+    .btn-danger:hover {
+      background: #b02b20;
+      transform: translateY(-1px);
+    }
+
+    /* Grid de elementos */
     .items-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
-      margin-top: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 22px;
+      margin-top: 8px;
     }
+
+    /* Tarjeta de archivo/carpeta */
     .item-card {
-      background: white;
+      position: relative;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: var(--r-lg);
+      padding: 24px 16px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      cursor: pointer;
-      transition: border-radius 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: grab;
+      transition: all 0.25s ease;
       box-shadow: var(--sh-card);
+      user-select: none;
     }
+
     .item-card:hover {
       box-shadow: var(--sh-lift);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      border-color: var(--navy-light);
     }
+
+    .item-card:active {
+      cursor: grabbing;
+    }
+
+    .item-card.seleccionado {
+      border-color: var(--navy);
+      background: var(--navy-light);
+      box-shadow: 0 0 0 3px rgba(26,43,109,0.25);
+    }
+
+    .item-card.drag-over {
+      border-color: #22C55E;
+      background: #f0fdf4;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.3);
+    }
+
     .item-icon {
-      font-size: 48px;
-      margin-bottom: 8px;
+      font-size: 52px;
+      margin-bottom: 14px;
+      pointer-events: none;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
     }
+
     .item-nombre {
       font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--tx-primary);
       word-break: break-word;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      pointer-events: none;
+      line-height: 1.4;
     }
+
     .item-meta {
-      font-size: 12px;
+      font-size: 0.78rem;
       color: var(--tx-muted);
+      pointer-events: none;
     }
 
-    .shadow {
-    box-shadow: inset 0 -3em 3em rgba(0,0,0,0.1),
-                0 0  0 2px rgb(190, 190, 190),
-                0.3em 0.3em 1em rgba(0,0,0,0.3);
+    /* Checkbox de selección */
+    .item-checkbox {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: none;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      z-index: 2;
     }
 
+    .modo-seleccion .item-checkbox {
+      display: block;
+    }
+
+    .modo-seleccion .item-card {
+      cursor: pointer;
+    }
+
+    .item-checkbox input {
+      display: none;
+    }
+
+    .checkmark {
+      display: block;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--tx-muted);
+      border-radius: 6px;
+      background: white;
+      transition: var(--ease);
+    }
+
+    .item-card.seleccionado .checkmark {
+      background: var(--navy);
+      border-color: var(--navy);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+      background-size: 16px;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    /* Estado vacío */
     .empty-repo {
       text-align: center;
-      padding: 60px;
+      padding: 70px 30px;
       color: var(--tx-muted);
+      font-size: 1.1rem;
+      background: var(--surface);
+      border-radius: var(--r-xl);
+      border: 1px dashed var(--border);
+      box-shadow: var(--sh-card);
     }
+
+    /* Modales */
     .modal-actions {
       display: flex;
       gap: 12px;
       justify-content: flex-end;
-      margin-top: 24px;
+      margin-top: 28px;
     }
+
+    .modal-content {
+      border-radius: var(--r-xl);
+      padding: 32px 30px;
+    }
+
+    .modal-header {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--divider);
+    }
+
     .upload-area {
       border: 2px dashed var(--border);
-      border-radius: var(--r-md);
-      padding: 32px;
+      border-radius: var(--r-lg);
+      padding: 44px 24px;
       text-align: center;
       margin-bottom: 20px;
       transition: var(--ease);
       cursor: pointer;
+      background: var(--surface-alt);
+      font-size: 1rem;
+      color: var(--tx-secondary);
     }
+
     .upload-area:hover {
       border-color: var(--navy);
       background: var(--navy-light);
+      color: var(--navy);
     }
+
     .upload-area input {
       display: none;
     }
+
+    /* Barra de acciones en modo selección */
+    .seleccion-actions {
+      display: none;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .modo-seleccion .seleccion-actions {
+      display: flex;
+    }
+
+    .modo-seleccion .acciones .btn-primary {
+      display: none;
+    }
+
+    /* Menú contextual */
+    .context-menu {
+      position: fixed;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--sh-modal);
+      border-radius: var(--r-md);
+      z-index: 10000;
+      min-width: 200px;
+      display: none;
+      flex-direction: column;
+      padding: 6px 0;
+      backdrop-filter: blur(4px);
+    }
+
+    .context-menu .menu-item {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--tx-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+
+    .context-menu .menu-item:hover {
+      background: var(--navy-light);
+    }
+
+    .context-menu .menu-item.disabled {
+      color: var(--tx-muted);
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .context-menu hr {
+      margin: 4px 0;
+      border: none;
+      border-top: 1px solid var(--divider);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .repositorio-container {
+        padding: 16px;
+      }
+
+      .repositorio-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 14px;
+      }
+
+      .search-box input {
+        min-width: 0;
+        flex: 1;
+      }
+    }
+
+    /* ── Panel de previsualización lateral ── */
+#mainContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  max-width: 100%;
+  padding: 28px 0 28px 32px;
+}
+
+.repo-content {
+  flex: 1;
+  min-width: 0;
+  transition: margin-right 0.3s ease;
+}
+
+.preview-panel {
+  position: sticky;
+  top: 68px;
+  width: 0;
+  min-width: 0;
+  height: calc(100vh - 68px);
+  overflow: hidden;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  transition: width 0.3s ease, min-width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--sh-card);
+}
+
+/* Cuando se activa la vista previa */
+#mainContainer.preview-visible .preview-panel {
+  width: 33.333%;        /* antes: 380px */
+  min-width: 300px;      /* opcional: evita que sea demasiado estrecho */
+  max-width: 50%;        /* opcional: impide que ocupe más de la mitad */
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--divider);
+}
+
+.preview-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.preview-content img,
+.preview-content video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.preview-content audio {
+  width: 100%;
+}
+
+.preview-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.preview-content pre {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  text-align: left;
+  white-space: pre-wrap;
+  font-family: 'Consolas', monospace;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--r-sm);
+}
+
+.preview-actions {
+  padding: 12px 16px;
+  border-top: 1px solid var(--divider);
+  display: none;
+  justify-content: center;
+}
+
+.preview-panel .preview-actions {
+  display: flex;         /* siempre visible cuando el panel está abierto */
+}
+
+/* Ajuste responsivo para el panel */
+@media (max-width: 768px) {
+  #mainContainer.preview-visible .preview-panel {
+    width: 100vw;
+    min-width: 100vw;
+  }
+  .preview-content div table {
+  font-size: 0.85rem;
+}
+.preview-content div table td,
+.preview-content div table th {
+  white-space: nowrap;
+}
+.preview-content div {
+  max-width: 100%;
+}
+}
+
+    /* ── Previsualización profesional de Office ── */
+    .preview-docx {
+      background: white;
+      padding: 30px 40px;
+      max-width: 100%;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      font-family: 'Calibri', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 11pt;
+      line-height: 1.15;
+      color: #1e1e1e;
+      word-wrap: break-word;
+      overflow: auto;
+    }
+
+    .preview-xlsx {
+      max-height: 100%;
+      overflow: auto;
+      background: white;
+      padding: 4px;
+    }
+
+    .preview-xlsx table {
+      border-collapse: collapse;
+      font-family: 'Calibri', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 10pt;
+      width: auto;
+      margin: 0 auto;
+      table-layout: auto;
+    }
+
+    .preview-xlsx th {
+      background: #4472C4;
+      color: white;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid #2F5496;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .preview-xlsx td {
+      padding: 4px 10px;
+      border: 1px solid #d9d9d9;
+      white-space: nowrap;
+      background: white;
+    }
+
+    .preview-xlsx tr:nth-child(even) td {
+      background-color: #f5f7fa;
+    }
+
+    .preview-xlsx tr:hover td {
+      background-color: #e8ecf4;
+    }
+
+    .preview-content div table {
+      font-size: 0.85rem;
+    }
+    .preview-content div table td,
+    .preview-content div table th {
+      white-space: nowrap;
+    }
+    .preview-content div {
+      max-width: 100%;
+    }
+
+    /* Ajuste responsivo para el panel */
+    @media (max-width: 768px) {
+      #mainContainer.preview-visible .preview-panel {
+        width: 100vw;
+        min-width: 100vw;
+      }
+    }
+
   </style>
 </head>
-<body data-page="oficina">
+<body data-page="oficina" id="body">
   <header class="page-header">
     <div class="header-inner">
       <img src="logo.png" alt="Logo GyG" class="header-logo">
@@ -131,23 +583,46 @@
     </div>
   </header>
 
-  <main class="repositorio-container">
-    <div class="repositorio-header">
-      <div class="breadcrumbs" id="breadcrumbs"></div>
-      <div class="acciones">
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Buscar archivos o carpetas..." class="filter-select" style="min-width:260px;">
-          <button class="btn-secondary" id="searchBtn">🔍 Buscar</button>
-        </div>
-        <button class="btn-primary" id="nuevaCarpetaBtn">📁 Nueva carpeta</button>
-        <button class="btn-primary" id="subirArchivoBtn">📤 Subir archivo</button>
+  <main class="repositorio-container" id="mainContainer">
+    <div class="repo-content" id="repoContent">
+      <!-- La cabecera y el grid se quedan aquí dentro -->
+      <div class="repositorio-header">
+        <div class="acciones">
+            <div class="search-box">
+              <input type="text" id="searchInput" placeholder="Buscar archivos o carpetas...">
+              <button class="btn-secondary" id="searchBtn">🔍</button>
+            </div>
+            <button class="btn-primary" id="nuevaCarpetaBtn">📁 Nueva carpeta</button>
+            <button class="btn-primary" id="subirArchivoBtn">📤 Subir archivo</button>
+            <button class="btn-primary" id="toggleSeleccionBtn">✅ Seleccionar</button>
+            <div class="seleccion-actions">
+              <button class="btn-secondary" id="selectAllBtn">☑️ Todo</button>
+              <button class="btn-secondary" id="downloadSelectedBtn">📥 Descargar</button>
+              <button class="btn-danger" id="deleteSelectedBtn">🗑️ Eliminar</button>
+            </div>
+          </div>
       </div>
+      <div class="breadcrumbs" id="breadcrumbs"></div>
+      <div id="itemsContainer" class="items-grid"></div>
     </div>
 
-    <div id="itemsContainer" class="items-grid"></div>
+    <!-- Panel de previsualización lateral -->
+    <aside class="preview-panel" id="previewPanel">
+      <div class="preview-header">
+        <h3 id="previewTitle"></h3>
+        <button class="btn-secondary" onclick="cerrarPanelPreview()" title="Cerrar">✕</button>
+      </div>
+      <div class="preview-content" id="previewContent"></div>
+      <div class="preview-actions" id="previewActions">
+        <a id="previewDownloadBtn" class="btn-primary" href="#" download>📥 Descargar</a>
+      </div>
+    </aside>
   </main>
 
-  <!-- Modal para crear carpeta -->
+  <!-- Context menu -->
+  <div id="contextMenu" class="context-menu"></div>
+
+  <!-- Modal nueva carpeta -->
   <div id="carpetaModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeCarpetaModal()">&times;</span>
@@ -163,16 +638,16 @@
     </div>
   </div>
 
-  <!-- Modal para subir archivo -->
+  <!-- Modal subir archivo -->
   <div id="uploadModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeUploadModal()">&times;</span>
       <div class="modal-header">Subir archivo</div>
       <div class="upload-area" id="dropArea">
         <div>📁 Arrastra un archivo aquí o haz clic para seleccionar</div>
-        <input type="file" id="fileInput">
+        <input type="file" id="fileInput" multiple>
       </div>
-      <div id="uploadStatus" style="margin: 12px 0;"></div>
+      <div id="uploadStatus" style="margin: 12px 0; color: var(--tx-secondary);"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeUploadModal()">Cancelar</button>
         <button class="btn-primary" id="uploadBtn" disabled>Subir</button>
@@ -180,16 +655,29 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script defer src="auth.js"></script>
   <script>
-    // Estado
-    let carpetaActual = null; // null = raíz
+    // ==================== ESTADO GLOBAL ====================
+    let carpetaActual = null;
     let breadcrumbs = [];
+    let modoSeleccion = false;
+    let selectedItems = [];
+    let currentItemsCache = [];
+    let clipboard = []; // { id, tipo, action: 'cut'|'copy' }
 
     const itemsContainer = document.getElementById('itemsContainer');
     const breadcrumbsDiv = document.getElementById('breadcrumbs');
+    const contextMenu = document.getElementById('contextMenu');
+    const body = document.getElementById('body');
+
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
+    const toggleSeleccionBtn = document.getElementById('toggleSeleccionBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
 
     // Modales
     const carpetaModal = document.getElementById('carpetaModal');
@@ -199,217 +687,624 @@
     const dropArea = document.getElementById('dropArea');
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadStatus = document.getElementById('uploadStatus');
-    let archivoSeleccionado = null;
+    let archivosSeleccionados = [];
+    //Previsualizador
+    const mainContainer = document.getElementById('mainContainer');
+    const previewPanel = document.getElementById('previewPanel');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewContent = document.getElementById('previewContent');
+    const previewActions = document.getElementById('previewActions');
+    const previewDownloadBtn = document.getElementById('previewDownloadBtn');
 
-    // Cargar contenido
+    // ==================== UTILIDADES ====================
+    function actualizarListaArchivos() {
+      if (archivosSeleccionados.length === 0) {
+        uploadStatus.innerHTML = '';
+        uploadBtn.disabled = true;
+      } else {
+        let html = '<ul style="list-style:none;padding:0;margin:8px 0;">';
+        archivosSeleccionados.forEach(file => {
+          html += `<li style="padding:4px 0;">📄 ${escapeHtml(file.name)} (${formatBytes(file.size)})</li>`;
+        });
+        html += '</ul>';
+        uploadStatus.innerHTML = html;
+        uploadBtn.disabled = false;
+      }
+    }
+
+    const formatBytes = (bytes, decimals = 2) => {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+    };
+
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      return String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    };
+
+    // ==================== CARGA DE CONTENIDO ====================
     async function cargarContenido(carpetaId = null) {
-    carpetaActual = carpetaId;
-    const url = carpetaId ? `/api/repositorio?carpetaId=${carpetaId}` : '/api/repositorio';
-    try {
+      carpetaActual = carpetaId;
+      const url = carpetaId ? `/api/repositorio?carpetaId=${carpetaId}` : '/api/repositorio';
+      try {
         const res = await fetch(url, { credentials: 'include' });
-        if (!res.ok) throw new Error('Error al cargar');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
+        currentItemsCache = items;
+        if (modoSeleccion) selectedItems = [];
         renderItems(items);
         cargarBreadcrumbs(carpetaId);
-    } catch (e) {
+      } catch (e) {
+        console.error(e);
         alert('Error al cargar el repositorio');
-    }
+      }
     }
 
     async function cargarBreadcrumbs(carpetaId) {
-    if (!carpetaId) {
-        breadcrumbs = [];
+      if (!carpetaId) { breadcrumbs = []; renderBreadcrumbs(); return; }
+      try {
+        const res = await fetch(`/api/repositorio/ruta/${carpetaId}`, { credentials: 'include' });
+        breadcrumbs = await res.json();
         renderBreadcrumbs();
-        return;
-    }
-    const res = await fetch(`/api/repositorio/ruta/${carpetaId}`, { credentials: 'include' });
-    breadcrumbs = await res.json();
-    renderBreadcrumbs();
+      } catch (e) { console.error(e); }
     }
 
     function renderBreadcrumbs() {
-    let html = `<a href="#" data-id="">🏠 Raíz</a>`;
-    breadcrumbs.forEach((c) => {
-        html += ` <span>›</span> <a href="#" data-id="${c.id}">${escapeHtml(c.nombre)}</a>`;
-    });
-    breadcrumbsDiv.innerHTML = html;
-    document.querySelectorAll('.breadcrumbs a').forEach(link => {
+      let html = `<a href="#" data-id="">🏠 Raíz</a>`;
+      breadcrumbs.forEach(c => html += ` <span>›</span> <a href="#" data-id="${c.id}">${escapeHtml(c.nombre)}</a>`);
+      breadcrumbsDiv.innerHTML = html;
+      document.querySelectorAll('.breadcrumbs a').forEach(link => {
         link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const id = link.dataset.id;
-        cargarContenido(id ? parseInt(id) : null);
+          e.preventDefault();
+          const id = link.dataset.id;
+          cargarContenido(id ? parseInt(id) : null);
         });
-    });
+      });
     }
 
+    // ==================== RENDERIZADO ====================
     function renderItems(items) {
-    if (items.length === 0) {
+      if (!items || items.length === 0) {
         itemsContainer.innerHTML = `<div class="empty-repo">📭 Esta carpeta está vacía</div>`;
         return;
-    }
-    itemsContainer.innerHTML = items.map(item => {
+      }
+      itemsContainer.innerHTML = items.map(item => {
         const icon = item.tipo === 'carpeta' ? '📁' : '📄';
         const size = item.tamano ? formatBytes(item.tamano) : '';
         const displayName = item.tipo === 'archivo' ? (item.nombre_original || item.nombre) : item.nombre;
+        const isSelected = selectedItems.some(s => s.id === item.id && s.tipo === item.tipo);
         return `
-        <div class="item-card shadow" data-id="${item.id}" data-tipo="${item.tipo}">
+          <div class="item-card ${isSelected ? 'seleccionado' : ''}" 
+               data-id="${item.id}" 
+               data-tipo="${item.tipo}" 
+               draggable="true">
             <div class="item-icon">${icon}</div>
             <div class="item-nombre">${escapeHtml(displayName)}</div>
             <div class="item-meta">${size}</div>
-        </div>
+            <div class="item-checkbox">
+              <label>
+                <input type="checkbox" ${isSelected ? 'checked' : ''}>
+                <span class="checkmark"></span>
+              </label>
+            </div>
+          </div>
         `;
-    }).join('');
+      }).join('');
 
-    document.querySelectorAll('.item-card').forEach(card => {
-        card.addEventListener('click', () => {
-        const id = card.dataset.id;
+      // Eventos de las tarjetas
+      document.querySelectorAll('.item-card').forEach(card => {
+        const id = parseInt(card.dataset.id);
         const tipo = card.dataset.tipo;
-        if (tipo === 'carpeta') {
-            cargarContenido(parseInt(id));
-        } else {
-            window.location.href = `/api/repositorio/descargar/${id}`;
-        }
+
+        // Clic normal / selección
+        card.addEventListener('click', (e) => {
+          if (modoSeleccion) {
+            e.preventDefault();
+            toggleItemSeleccion(id, tipo, card);
+          } else {
+            if (tipo === 'carpeta') cargarContenido(id);
+            else previsualizarArchivo(id);
+          }
         });
+
+        // Menú contextual
         card.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        const id = card.dataset.id;
-        const tipo = card.dataset.tipo;
-        if (confirm(`¿Eliminar ${tipo}?`)) {
-            eliminarItem(id, tipo);
-        }
+          e.preventDefault();
+          const nombreActual = card.querySelector('.item-nombre').textContent;
+          mostrarMenuContextual(e, id, tipo, nombreActual);
         });
-    });
-    }
 
-    async function eliminarItem(id, tipo) {
-    const endpoint = tipo === 'carpeta' ? `/api/repositorio/carpetas/${id}` : `/api/repositorio/archivos/${id}`;
-    const res = await fetch(endpoint, { method: 'DELETE', credentials: 'include' });
-    if (res.ok) {
-        cargarContenido(carpetaActual);
-    } else {
-        alert('Error al eliminar');
-    }
-    }
+        // Drag & Drop
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', JSON.stringify({ id, tipo }));
+          e.dataTransfer.effectAllowed = 'move';
+        });
 
-    function formatBytes(bytes, decimals = 2) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    }
+        if (tipo === 'carpeta') {
+          card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            card.classList.add('drag-over');
+          });
+          card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+          card.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            card.classList.remove('drag-over');
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (data.id === id) return;
+            await moverItem(data.id, data.tipo, id);
+          });
+        }
+      });
 
-    function escapeHtml(text) {
-    if (!text) return '';
-    return String(text).replace(/[&<>"]/g, function(c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-    });
-    }
-
-    // Búsqueda
-    async function buscar(termino) {
-    if (!termino) {
-        cargarContenido(carpetaActual);
-        return;
-    }
-    const res = await fetch(`/api/repositorio/buscar?q=${encodeURIComponent(termino)}`, { credentials: 'include' });
-    const data = await res.json();
-    // La búsqueda devuelve { carpetas: [...], archivos: [...] }
-    const items = [...(data.carpetas || []), ...(data.archivos || [])];
-    renderItems(items);
-    breadcrumbsDiv.innerHTML = `<a href="#" id="clearSearch">← Volver</a>`;
-    document.getElementById('clearSearch').addEventListener('click', (e) => {
+      // Drop en la zona raíz
+      itemsContainer.addEventListener('dragover', e => e.preventDefault());
+      itemsContainer.addEventListener('drop', async (e) => {
         e.preventDefault();
-        searchInput.value = '';
-        cargarContenido(carpetaActual);
+        if (e.target !== itemsContainer) return;
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (data.tipo === 'carpeta' && data.id === carpetaActual) return;
+        await moverItem(data.id, data.tipo, null);
+      });
+    }
+
+    async function moverItem(id, tipo, nuevoPadreId) {
+      const endpoint = tipo === 'archivo' ? `/api/repositorio/archivos/${id}` : `/api/repositorio/carpetas/${id}`;
+      const body = tipo === 'archivo' ? { carpeta_id: nuevoPadreId } : { carpeta_padre_id: nuevoPadreId };
+      try {
+        const res = await fetch(endpoint, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.error || 'Error al mover');
+        } else {
+          cargarContenido(carpetaActual);
+        }
+      } catch (e) { console.error(e); alert('Error de red'); }
+    }
+
+    // ==================== MENÚ CONTEXTUAL ====================
+    function mostrarMenuContextual(e, id, tipo, nombreActual) {
+      const items = [];
+      const estaSeleccionado = selectedItems.some(s => s.id === id && s.tipo === tipo);
+      const usarSeleccion = modoSeleccion && selectedItems.length > 0 && estaSeleccionado;
+
+      // Abrir / Descargar
+      items.push({
+        texto: tipo === 'carpeta' ? '📂 Abrir carpeta' : '📥 Descargar archivo',
+        accion: () => {
+          if (tipo === 'carpeta') cargarContenido(id);
+          else window.location.href = `/api/repositorio/descargar/${id}`;
+        }
+      });
+
+      // Cortar
+      items.push({
+        texto: '✂️ Cortar',
+        accion: () => {
+          const fuente = usarSeleccion ? selectedItems : [{ id, tipo }];
+          clipboard = fuente.map(i => ({ ...i, action: 'cut' }));
+        }
+      });
+
+      // Copiar
+      items.push({
+        texto: '📋 Copiar',
+        accion: () => {
+          const fuente = usarSeleccion ? selectedItems : [{ id, tipo }];
+          clipboard = fuente.map(i => ({ ...i, action: 'copy' }));
+        }
+      });
+
+      // Pegar
+      items.push({
+        texto: '📩 Pegar aquí',
+        accion: () => pegarElementos(),
+        disabled: clipboard.length === 0
+      });
+
+      // Renombrar
+      items.push({
+        texto: '✏️ Renombrar',
+        accion: () => renombrarItem(id, tipo, nombreActual)
+      });
+
+      items.push(null); // separador
+
+      // Eliminar
+      items.push({
+        texto: '🗑️ Eliminar',
+        accion: async () => {
+          const objetivos = usarSeleccion ? selectedItems : [{ id, tipo }];
+          if (!confirm(`¿Eliminar ${objetivos.length} elemento(s)?`)) return;
+          let errors = 0;
+          for (const item of objetivos) {
+            const ep = item.tipo === 'carpeta' ? `/api/repositorio/carpetas/${item.id}` : `/api/repositorio/archivos/${item.id}`;
+            try {
+              const res = await fetch(ep, { method: 'DELETE', credentials: 'include' });
+              if (!res.ok) errors++;
+            } catch (e) { errors++; }
+          }
+          if (errors === 0) {
+            if (usarSeleccion) desactivarModoSeleccion();
+            cargarContenido(carpetaActual);
+          } else alert(`Error al eliminar ${errors} elementos`);
+        }
+      });
+
+
+      // Construir HTML
+      let html = '';
+      items.forEach((item, index) => {
+        if (item === null) html += '<hr>';
+        else html += `<div class="menu-item ${item.disabled ? 'disabled' : ''}" data-action-index="${index}">${item.texto}</div>`;
+      });
+      contextMenu.innerHTML = html;
+      contextMenu.style.display = 'flex';
+      contextMenu.style.left = Math.min(e.clientX, window.innerWidth - 220) + 'px';
+      contextMenu.style.top = Math.min(e.clientY, window.innerHeight - 250) + 'px';
+
+      document.querySelectorAll('.menu-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = el.dataset.actionIndex;
+          const item = items[idx];
+          if (item && item.accion && !item.disabled) item.accion();
+          cerrarMenuContextual();
+        });
+      });
+
+      setTimeout(() => window.addEventListener('click', cerrarMenuContextual, { once: true }), 10);
+    }
+
+    function cerrarMenuContextual() {
+      contextMenu.style.display = 'none';
+    }
+
+    async function pegarElementos() {
+      if (clipboard.length === 0) return;
+      const action = clipboard[0].action;
+      for (const item of clipboard) {
+        if (action === 'cut') {
+          await moverItem(item.id, item.tipo, carpetaActual);
+        } else {
+          await fetch('/api/repositorio/copiar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ id: item.id, tipo: item.tipo }) });
+        }
+      }
+      if (action === 'cut') clipboard = [];
+      cargarContenido(carpetaActual);
+    }
+
+        async function renombrarItem(id, tipo, nombreActual) {
+      const nuevoNombre = prompt('Nuevo nombre:', nombreActual);
+      if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre === nombreActual) return;
+
+      const endpoint = tipo === 'archivo'
+        ? `/api/repositorio/archivos/${id}/renombrar`
+        : `/api/repositorio/carpetas/${id}/renombrar`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ nombre: nuevoNombre.trim() })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.error || 'Error al renombrar');
+        } else {
+          cargarContenido(carpetaActual);
+        }
+      } catch (e) {
+        alert('Error de red');
+        console.error(e);
+      }
+    }
+
+    // ==================== SELECCIÓN MÚLTIPLE ====================
+    function activarModoSeleccion() {
+      modoSeleccion = true;
+      body.classList.add('modo-seleccion');
+      toggleSeleccionBtn.textContent = '❌ Cancelar selección';
+      actualizarUI();
+    }
+
+    function desactivarModoSeleccion() {
+      modoSeleccion = false;
+      selectedItems = [];
+      body.classList.remove('modo-seleccion');
+      toggleSeleccionBtn.textContent = '✅ Seleccionar';
+      document.querySelectorAll('.item-card').forEach(c => c.classList.remove('seleccionado'));
+      actualizarUI();
+    }
+
+    toggleSeleccionBtn.addEventListener('click', () => modoSeleccion ? desactivarModoSeleccion() : activarModoSeleccion());
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modoSeleccion) desactivarModoSeleccion();
     });
+
+    function toggleItemSeleccion(id, tipo, cardElement) {
+      const index = selectedItems.findIndex(s => s.id === id && s.tipo === tipo);
+      if (index === -1) {
+        selectedItems.push({ id, tipo });
+        cardElement.classList.add('seleccionado');
+        cardElement.querySelector('input[type="checkbox"]').checked = true;
+      } else {
+        selectedItems.splice(index, 1);
+        cardElement.classList.remove('seleccionado');
+        cardElement.querySelector('input[type="checkbox"]').checked = false;
+      }
+      actualizarUI();
+    }
+
+    function actualizarUI() {
+      const count = selectedItems.length;
+      deleteSelectedBtn.textContent = `🗑️ Eliminar (${count})`;
+      deleteSelectedBtn.disabled = count === 0;
+      downloadSelectedBtn.disabled = count === 0;
+      selectAllBtn.textContent = (modoSeleccion && selectedItems.length === document.querySelectorAll('.item-card').length) ? '☑️ Ninguno' : '☑️ Todos';
+    }
+
+    selectAllBtn.addEventListener('click', () => {
+      if (!modoSeleccion) return;
+      const allCards = document.querySelectorAll('.item-card');
+      if (selectedItems.length === allCards.length) {
+        allCards.forEach(c => { c.classList.remove('seleccionado'); c.querySelector('input[type="checkbox"]').checked = false; });
+        selectedItems = [];
+      } else {
+        allCards.forEach(c => {
+          const id = parseInt(c.dataset.id), tipo = c.dataset.tipo;
+          if (!selectedItems.some(s => s.id === id && s.tipo === tipo)) {
+            selectedItems.push({ id, tipo });
+            c.classList.add('seleccionado');
+            c.querySelector('input[type="checkbox"]').checked = true;
+          }
+        });
+      }
+      actualizarUI();
+    });
+
+    deleteSelectedBtn.addEventListener('click', async () => {
+      if (selectedItems.length === 0) return;
+      if (!confirm(`¿Eliminar ${selectedItems.length} elemento(s)?`)) return;
+      let errors = 0;
+      for (const item of selectedItems) {
+        const ep = item.tipo === 'carpeta' ? `/api/repositorio/carpetas/${item.id}` : `/api/repositorio/archivos/${item.id}`;
+        try { const res = await fetch(ep, { method: 'DELETE', credentials: 'include' }); if (!res.ok) errors++; } catch (e) { errors++; }
+      }
+      if (errors === 0) { desactivarModoSeleccion(); cargarContenido(carpetaActual); }
+      else alert(`Error al eliminar ${errors} elementos`);
+    });
+
+    async function descargarSeleccionados() {
+      if (selectedItems.length === 0) return;
+      const ids = selectedItems.map(i => ({ id: i.id, tipo: i.tipo }));
+      try {
+        const res = await fetch('/api/repositorio/descargar-varios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ ids }) });
+        if (!res.ok) throw new Error('Error');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `archivos-${Date.now()}.zip`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (e) { alert('Error al descargar'); console.error(e); }
+    }
+
+    downloadSelectedBtn.addEventListener('click', descargarSeleccionados);
+
+    // ==================== BÚSQUEDA ====================
+    async function buscar(termino) {
+      if (!termino) { cargarContenido(carpetaActual); return; }
+      try {
+        const res = await fetch(`/api/repositorio/buscar?q=${encodeURIComponent(termino)}`, { credentials: 'include' });
+        const data = await res.json();
+        const items = [...(data.carpetas || []), ...(data.archivos || [])];
+        currentItemsCache = items;
+        renderItems(items);
+        breadcrumbsDiv.innerHTML = `<a href="#" id="clearSearch">← Volver</a>`;
+        document.getElementById('clearSearch')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          searchInput.value = '';
+          cargarContenido(carpetaActual);
+        });
+      } catch (e) { console.error(e); }
     }
 
     searchBtn.addEventListener('click', () => buscar(searchInput.value));
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') buscar(searchInput.value); });
 
-    // Modal carpeta
-    document.getElementById('nuevaCarpetaBtn').addEventListener('click', () => {
-    nombreCarpetaInput.value = '';
-    carpetaModal.style.display = 'block';
-    });
+    // ==================== MODALES ====================
+    document.getElementById('nuevaCarpetaBtn').addEventListener('click', () => { nombreCarpetaInput.value = ''; carpetaModal.style.display = 'block'; });
     window.closeCarpetaModal = () => carpetaModal.style.display = 'none';
     document.getElementById('crearCarpetaBtn').addEventListener('click', async () => {
-    const nombre = nombreCarpetaInput.value.trim();
-    if (!nombre) return alert('Nombre requerido');
-    const res = await fetch('/api/repositorio/carpetas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ nombre, carpeta_padre_id: carpetaActual })
-    });
-    if (res.ok) {
-        closeCarpetaModal();
-        cargarContenido(carpetaActual);
-    } else {
-        alert('Error al crear carpeta');
-    }
+      const nombre = nombreCarpetaInput.value.trim();
+      if (!nombre) return alert('Nombre requerido');
+      const res = await fetch('/api/repositorio/carpetas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ nombre, carpeta_padre_id: carpetaActual }) });
+      if (res.ok) { closeCarpetaModal(); cargarContenido(carpetaActual); }
+      else alert('Error al crear carpeta');
     });
 
-    // Modal upload
     document.getElementById('subirArchivoBtn').addEventListener('click', () => {
-    archivoSeleccionado = null;
-    uploadBtn.disabled = true;
-    uploadStatus.textContent = '';
-    uploadModal.style.display = 'block';
-    });
+  archivosSeleccionados = [];
+  actualizarListaArchivos();
+  uploadBtn.disabled = true;
+  uploadModal.style.display = 'block';
+});
     window.closeUploadModal = () => uploadModal.style.display = 'none';
 
     dropArea.addEventListener('click', () => fileInput.click());
     dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.background = 'var(--navy-light)'; });
     dropArea.addEventListener('dragleave', () => { dropArea.style.background = ''; });
     dropArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropArea.style.background = '';
-    const files = e.dataTransfer.files;
-    if (files.length) {
-        archivoSeleccionado = files[0];
-        uploadStatus.textContent = `Archivo: ${archivoSeleccionado.name} (${formatBytes(archivoSeleccionado.size)})`;
+      e.preventDefault();
+      dropArea.style.background = '';
+      const files = Array.from(e.dataTransfer.files);   // ← todos los archivos arrastrados
+      if (files.length) {
+        archivosSeleccionados = files;
+        actualizarListaArchivos();
         uploadBtn.disabled = false;
-    }
+      }
     });
     fileInput.addEventListener('change', () => {
-    if (fileInput.files.length) {
-        archivoSeleccionado = fileInput.files[0];
-        uploadStatus.textContent = `Archivo: ${archivoSeleccionado.name} (${formatBytes(archivoSeleccionado.size)})`;
+      const files = Array.from(fileInput.files);        // ← todos los archivos seleccionados
+      if (files.length) {
+        archivosSeleccionados = files;
+        actualizarListaArchivos();
         uploadBtn.disabled = false;
-    }
+      }
     });
-
     uploadBtn.addEventListener('click', async () => {
-    if (!archivoSeleccionado) return;
-    const formData = new FormData();
-    formData.append('archivo', archivoSeleccionado);
-    if (carpetaActual) formData.append('carpeta_id', carpetaActual);
-    uploadBtn.disabled = true;
-    uploadStatus.textContent = 'Subiendo...';
-    const res = await fetch('/api/repositorio/archivos', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-    });
-    if (res.ok) {
-        closeUploadModal();
-        cargarContenido(carpetaActual);
-    } else {
-        uploadStatus.textContent = 'Error al subir archivo';
-        uploadBtn.disabled = false;
-    }
+      if (!archivosSeleccionados.length) return;
+      const formData = new FormData();
+      archivosSeleccionados.forEach((archivo, index) => {
+        formData.append('archivos', archivo);
+      });
+      if (carpetaActual) formData.append('carpeta_id', carpetaActual);
+      uploadStatus.innerHTML = 'Subiendo...';
+      const res = await fetch('/api/repositorio/archivos', { method: 'POST', credentials: 'include', body: formData });
+      if (res.ok) { closeUploadModal(); cargarContenido(carpetaActual); }
+      else { uploadStatus.innerHTML = 'Error al subir'; uploadBtn.disabled = false; }
     });
 
-    // Cerrar modales con click fuera
     window.addEventListener('click', (e) => {
-    if (e.target === carpetaModal) closeCarpetaModal();
-    if (e.target === uploadModal) closeUploadModal();
+      if (e.target === carpetaModal) closeCarpetaModal();
+      if (e.target === uploadModal) closeUploadModal();
+      if (!contextMenu.contains(e.target)) cerrarMenuContextual();
     });
 
-    // Iniciar
+        // ==================== PREVISUALIZACIÓN ====================
+
+    // Cerrar panel de previsualización
+      function cerrarPanelPreview() {
+        mainContainer.classList.remove('preview-visible');
+        previewContent.innerHTML = '';
+      }
+
+    // Abrir previsualización en el panel lateral
+      async function previsualizarArchivo(id) {
+        let archivo = currentItemsCache.find(item => item.id == id && item.tipo === 'archivo');
+        if (!archivo) {
+          await cargarContenido(carpetaActual);
+          archivo = currentItemsCache.find(item => item.id == id && item.tipo === 'archivo');
+          if (!archivo) return alert('Archivo no encontrado');
+        }
+
+      const nombre = archivo.nombre_original || archivo.nombre;
+  const mime = archivo.tipo_mime || '';
+  const extension = nombre.split('.').pop().toLowerCase();
+  const url = `/api/repositorio/ver/${id}`;
+
+  previewTitle.textContent = nombre;
+  previewContent.innerHTML = '';
+
+  const extImagen = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'];
+  const extVideo = ['mp4', 'webm', 'ogg'];
+  const extAudio = ['mp3', 'wav', 'ogg'];
+  const extTexto = ['txt', 'csv', 'json', 'xml', 'log', 'md', 'sql', 'html', 'css', 'js'];
+  const extPDF = ['pdf'];
+  const extDocx = ['docx'];
+  const extXlsx = ['xlsx'];
+  const extPptx = ['pptx']; // podemos manejarlo similar a docx si queremos
+
+  if (mime.startsWith('image/') || extImagen.includes(extension)) {
+    const img = document.createElement('img');
+    img.src = url;
+    previewContent.appendChild(img);
+  } else if (mime.startsWith('video/') || extVideo.includes(extension)) {
+    const video = document.createElement('video');
+    video.src = url;
+    video.controls = true;
+    previewContent.appendChild(video);
+  } else if (mime.startsWith('audio/') || extAudio.includes(extension)) {
+    const audio = document.createElement('audio');
+    audio.src = url;
+    audio.controls = true;
+    previewContent.appendChild(audio);
+  } else if (mime === 'application/pdf' || extPDF.includes(extension)) {
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    previewContent.appendChild(iframe);
+  } else if (mime.startsWith('text/') || extTexto.includes(extension)) {
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const texto = await res.text();
+      const pre = document.createElement('pre');
+      pre.textContent = texto;
+      previewContent.appendChild(pre);
+    } catch (e) {
+      previewContent.innerHTML = '<p>No se pudo cargar el contenido.</p>';
+    }
+  } else if (extDocx.includes(extension) || mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const arrayBuffer = await res.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      const div = document.createElement('div');
+      div.className = 'preview-docx';
+      div.innerHTML = result.value;
+      previewContent.appendChild(div);
+    } catch (e) {
+      previewContent.innerHTML = '<p>Error al previsualizar el documento.</p>';
+    }
+  } else if (extXlsx.includes(extension) || mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const arrayBuffer = await res.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const firstSheet = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheet];
+      const html = XLSX.utils.sheet_to_html(worksheet, { id: 'xlsx-preview', editable: false });
+      const div = document.createElement('div');
+      div.className = 'preview-xlsx';
+      div.innerHTML = html;
+      // Eliminar colgroup para que las columnas se ajusten automáticamente
+      const table = div.querySelector('table');
+      if (table) {
+        const colgroup = table.querySelector('colgroup');
+        if (colgroup) colgroup.remove();
+        // Asegurar que todas las celdas tengan el formato adecuado
+        table.querySelectorAll('td, th').forEach(cell => {
+          cell.style.whiteSpace = 'nowrap';
+        });
+      }
+      previewContent.appendChild(div);
+    } catch (e) {
+      previewContent.innerHTML = '<p>Error al previsualizar la hoja de cálculo.</p>';
+    }
+  } else if (extPptx.includes(extension) || mime === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+    // Para .pptx podemos intentar extraer texto, pero es complejo.
+    // Por ahora mostramos mensaje con descarga.
+    previewContent.innerHTML = `<div style="text-align:center;padding:30px;">
+      <p>La vista previa de presentaciones no está disponible por el momento.</p>
+      <p><strong>${escapeHtml(nombre)}</strong></p>
+      <p>Puedes descargarlo con el botón de abajo.</p>
+    </div>`;
+  } else {
+    previewContent.innerHTML = `<div style="text-align:center;padding:30px;">
+      <p>La vista previa no está disponible para este tipo de archivo.</p>
+      <p><strong>${escapeHtml(nombre)}</strong></p>
+      <p>Puedes descargarlo con el botón de abajo.</p>
+    </div>`;
+  }
+
+  previewDownloadBtn.href = url;
+  previewDownloadBtn.download = nombre;
+  mainContainer.classList.add('preview-visible');
+}
+
+// Cerrar con Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && mainContainer.classList.contains('preview-visible')) {
+    cerrarPanelPreview();
+  }
+});
+    // ==================== INICIO ====================
     cargarContenido(null);
   </script>
 </body>
